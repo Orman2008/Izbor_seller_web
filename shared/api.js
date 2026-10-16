@@ -236,3 +236,16 @@ export function installPrivateMediaImages({request, baseUrl, root = globalThis.d
   root?.addEventListener("load",loaded,true);
   return () => { root?.removeEventListener("error",listener,true); root?.removeEventListener("load",loaded,true); };
 }
+
+// A diagnostic probe, never a gate for catalog/auth or a probe of the API root.
+export async function checkApiHealth({baseUrl, fetchImpl = globalThis.fetch, timeout = 5000} = {}) {
+  const base = resolveApiBaseUrl(baseUrl);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetchImpl(`${base}/health`, {method: 'GET', credentials: 'omit', signal: controller.signal});
+    return {available: response.status >= 200 && response.status < 300, status: response.status, reason: response.ok ? '' : 'HTTP_ERROR'};
+  } catch {
+    return {available: false, status: 0, reason: controller.signal.aborted ? 'TIMEOUT' : 'NETWORK_ERROR'};
+  } finally { clearTimeout(timer); }
+}

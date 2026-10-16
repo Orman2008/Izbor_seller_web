@@ -46,7 +46,7 @@ let loadingYandex;
 export function loadYandexMaps(){
  if(globalThis.ymaps)return new Promise(resolve=>globalThis.ymaps.ready(()=>resolve(globalThis.ymaps)));
  if(loadingYandex)return loadingYandex;
- const key=String(globalThis.MAPMARKET_CONFIG?.YANDEX_MAPS_API_KEY||'').trim();
+ const key=String(globalThis.IZBOR_CONFIG?.YANDEX_MAPS_API_KEY||globalThis.MAPMARKET_CONFIG?.YANDEX_MAPS_API_KEY||'').trim();
  if(!key)return Promise.reject(new Error('Для карты сайта требуется настроить Yandex JavaScript API. Координаты можно указать вручную.'));
  loadingYandex=new Promise((resolve,reject)=>{const script=document.createElement('script');let settled=false;const finish=(error)=>{if(settled)return;settled=true;clearTimeout(timer);if(error){script.remove();reject(error);}else resolve(globalThis.ymaps);};const timer=setTimeout(()=>finish(new Error('Яндекс.Карта не загрузилась. Повторите попытку.')),15000);script.src='https://api-maps.yandex.ru/2.1/?'+new URLSearchParams({apikey:key,lang:'ru_RU'});script.onerror=()=>finish(new Error('Яндекс.Карта не загрузилась. Проверьте соединение.'));script.onload=()=>{if(!globalThis.ymaps)return finish(new Error('Яндекс.Карта недоступна.'));globalThis.ymaps.ready(()=>finish());};document.head.append(script);}).catch(error=>{loadingYandex=null;throw error;});return loadingYandex;
 }

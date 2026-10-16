@@ -1,9 +1,9 @@
 {
-  "name": "yaqintop-seller-website",
+  "name": "izbor-seller-website",
   "private":true,
   "scripts":{
-    "build":"node ../yaqintop_web/tools/build.mjs --seller-only",
+    "build":"node ../izbor_web/tools/build.mjs --seller-only",
     "check":"node --check seller-site.js && node --check seller-theme.js && node --check web-app.js",
-    "preview":"node ../yaqintop_web/tools/serve.mjs"
+    "preview":"node ../izbor_web/tools/serve.mjs"
   }
 }
