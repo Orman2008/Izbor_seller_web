@@ -4,7 +4,7 @@
   const status = document.getElementById('sellerSiteStatus');
   const config = String(window.IZBOR_CONFIG?.PUBLIC_API_BASE_URL || window.MAPMARKET_CONFIG?.PUBLIC_API_BASE_URL || '').replace(/\/$/, '');
   for (const link of document.querySelectorAll('[data-legal]')) {
-    link.href = link.dataset.legal === 'support' ? 'https://t.me/yaqintop_support_bot' : `${config}/legal/seller/${link.dataset.legal}`;
+    link.href = link.dataset.legal === 'support' ? 'https://t.me/izbor_support_bot' : `${config}/legal/seller/${link.dataset.legal}`;
   }
   const menu = document.querySelector('.menu-toggle');
   menu.addEventListener('click', () => {
@@ -64,4 +64,3 @@
   // A dashboard deep link still starts with an explicit authentication gate.
   if (['dashboard','products','catalog','imports','chats','reviews','analytics','plan','store','profile','team','qr','branches'].includes(location.hash.slice(1))) begin('login');
 })();
-

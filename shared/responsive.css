@@ -1,8 +1,8 @@
 /* IZBOR Web presentation: tokens follow the current Flutter visual language. */
-@font-face{font-family:Manrope;src:url(../assets/fonts/manrope-regular.ttf) format('truetype');font-style:normal;font-weight:400;font-display:swap}
-@font-face{font-family:Manrope;src:url(../assets/fonts/manrope-medium.ttf) format('truetype');font-style:normal;font-weight:500;font-display:swap}
-@font-face{font-family:Manrope;src:url(../assets/fonts/manrope-semibold.ttf) format('truetype');font-style:normal;font-weight:600;font-display:swap}
-@font-face{font-family:Manrope;src:url(../assets/fonts/manrope-bold.ttf) format('truetype');font-style:normal;font-weight:700 900;font-display:swap}
+@font-face{font-family:Manrope;src:url(../assets/fonts/manrope-regular.woff2) format('woff2');font-style:normal;font-weight:400;font-display:optional}
+@font-face{font-family:Manrope;src:url(../assets/fonts/manrope-medium.woff2) format('woff2');font-style:normal;font-weight:500;font-display:optional}
+@font-face{font-family:Manrope;src:url(../assets/fonts/manrope-semibold.woff2) format('woff2');font-style:normal;font-weight:600;font-display:optional}
+@font-face{font-family:Manrope;src:url(../assets/fonts/manrope-bold.woff2) format('woff2');font-style:normal;font-weight:700 900;font-display:optional}
 :root{--primary:#089bd5;--primary-dark:#0874ab;--primary-readable:#0874ab;--primary-soft:#e8f4fa;--bg:#f7f9fc;--background:#f7f9fc;--surface:#fff;--surface-2:#f2f4f7;--ink:#111827;--muted:#667085;--border:#d0d5dd;--danger:#b42318;--radius-card:20px;--radius-control:16px;--radius-dialog:28px;--space:8px;font-family:Manrope,system-ui,sans-serif;color-scheme:light}
 :root[data-theme=dark]{--bg:#101620;--background:#101620;--surface:#192230;--surface-2:#222e3e;--ink:#edf2fa;--muted:#b0bdd0;--border:#3b4b61;--primary-soft:#173951;--primary-readable:#70caff;--danger:#ff9494;color-scheme:dark}
 body{font-family:Manrope,system-ui,sans-serif;background:var(--background);color:var(--ink);line-height:1.5}

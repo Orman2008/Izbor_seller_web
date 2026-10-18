@@ -1,3 +1,4 @@
+import { attributeEditorMarkup, mountAttributeEditor } from "./shared/product-attributes-editor.js";
 import {pricingPreview,bindPricing} from './shared/pricing.js';
 import {posPage,bindPos} from './seller-pos.js';
 import {branchesPage,bindBranches,mapPosLocations} from './seller-branches.js';
@@ -32,7 +33,7 @@ import { authFlow, specializations } from "./shared/auth.js";
 import { locationPicker } from "./shared/maps.js";
 import { mountChats } from "./shared/chats.js";
 import { editAccount, deleteAccount, supportLinks } from "./shared/account.js";
-import { sellerTransaction } from "./shared/rewards.js";
+
 import { mountPhotoEditor } from "./shared/photo-navigation.js";
 import { productFormData } from "./shared/products.js";
 const base = resolveApiBaseUrl(window.IZBOR_CONFIG?.PUBLIC_API_BASE_URL || window.MAPMARKET_CONFIG?.PUBLIC_API_BASE_URL);
@@ -79,7 +80,7 @@ const nav = [
   ["ranking", "Как формируется выдача"],
 ];
 $("#app").outerHTML =
-  `<a class="skip-link" href="#view">К содержимому</a><div class="web-shell"><aside class="web-sidebar"><a class="web-brand" href="#dashboard"><img src="assets/izbor-seller-transparent.png" alt="Izbor Seller"><span>Izbor Seller<br><small class="muted">Seller</small></span></a><nav aria-label="Кабинет продавца">${nav.map(([key, title]) => `<a href="#${key}" data-nav="${key}">${title}</a>`).join("")}</nav><div class="sidebar-footer">${supportLinks(base, "seller")}</div></aside><main class="web-main"><header class="web-header"><span id="storeName">Кабинет продавца</span><div id="branchContext"></div><div class="actions">${button("Войти", "login")}${button("Выйти", "logout")}</div></header><section id="view" class="web-content" aria-live="polite"></section></main></div>`;
+  `<a class="skip-link" href="#view">К содержимому</a><div class="web-shell"><aside class="web-sidebar"><a class="web-brand" href="#dashboard"><img src="assets/izbor-icon-192.png" alt="Izbor Seller"><span>Izbor Seller<br><small class="muted">Seller</small></span></a><nav aria-label="Кабинет продавца">${nav.map(([key, title]) => `<a href="#${key}" data-nav="${key}">${title}</a>`).join("")}</nav><div class="sidebar-footer">${supportLinks(base, "seller")}</div></aside><main class="web-main"><header class="web-header"><span id="storeName">Кабинет продавца</span><div id="branchContext"></div><div class="actions">${button("Войти", "login")}${button("Выйти", "logout")}</div></header><section id="view" class="web-content" aria-live="polite"></section></main></div>`;
 const image = (url, title = "Фото товара") => {
   const src = mediaUrl(url, base, true);
   return src
@@ -135,7 +136,7 @@ const metricLabels = {
   catalog_views: "Каталог",
   favorites: "Избранное",
   chats: "Чаты",
-  qr_deals: "QR-сделки",
+  qr_deals: "QR магазина",
   current_plan: "Текущий тариф",
   product_usage: "Товаров",
   product_limit: "Лимит товаров",
@@ -212,7 +213,7 @@ async function editor(product = {}) {
   if (!Object.keys(tree).length)
     tree = await api.request("/products/category-tree");
   const modal = dialog(
-    `<form class="form">${field("Название", "title", product.title || "", "text", 'required maxlength="220"')}${textarea("Описание", "description", product.description)}<div class="form-row">${field("Цена, сум", "price", product.price ?? "", "number", 'required min="0.01" step="0.01"')}${field("Старая цена", "old_price", product.old_price || "", "number", 'min="0" step="0.01"')}${field("Скидка, %", "discount_percent", product.discount_percent || 0, "number", 'min="0" max="99" step="0.01"')}</div><div class="form-row">${field("Количество", "stock_quantity", product.stock_quantity ?? "", "number", 'min="0" step="1"')}${select("Наличие", "stock_status", ["AVAILABLE", "OUT_OF_STOCK", "UNCONFIRMED"], product.stock_status || "AVAILABLE")}</div><div class="form-row">${field("Штрихкод / GTIN", "barcode", product.barcode || product.gtin || "", "text", 'inputmode="numeric"')}${field("Артикул", "sku", product.sku || "")}</div><div class="form-row">${field("Бренд", "brand", product.brand || "")}${field("Модель", "model", product.model || "")}</div><details><summary>Варианты и характеристики</summary><div class="form">${field("Цвет", "color", product.color || "")}${field("Размер", "size", product.size || "")}${field("Длина", "length", product.length || "")}${["available_colors", "available_sizes", "unavailable_colors", "unavailable_sizes"].map((key, index) => field(["Цвета через запятую", "Размеры через запятую", "Недоступные цвета", "Недоступные размеры"][index], key, Array.isArray(product[key]) ? product[key].join(", ") : "")).join("")}${textarea("Характеристики JSON", "attributes", typeof product.attributes === "string" ? product.attributes : JSON.stringify(product.attributes || {}))}</div></details>${select("Категория", "category", Object.keys(tree), product.category)}<div id="subcategories"></div><p class="field-note">AI: не отправляйте фото документов, банковских карт, PINFL и других персональных или платёжных данных. Изображения не проходят OCR/DLP-проверку.</p>${field("Приложить фото", "image", "", "file", 'accept="image/jpeg,image/png,image/webp"')}<div class="gallery">${(
+    `<form class="form">${field("Название", "title", product.title || "", "text", 'required maxlength="220"')}${textarea("Описание", "description", product.description)}<div class="form-row">${field("Цена, сум", "price", product.price ?? "", "number", 'required min="0.01" step="0.01"')}${field("Старая цена", "old_price", product.old_price || "", "number", 'min="0" step="0.01"')}${field("Скидка, %", "discount_percent", product.discount_percent || 0, "number", 'min="0" max="99" step="0.01"')}</div><div class="form-row">${field("Количество", "stock_quantity", product.stock_quantity ?? "", "number", 'min="0" step="1"')}${select("Наличие", "stock_status", ["AVAILABLE", "OUT_OF_STOCK", "UNCONFIRMED"], product.stock_status || "AVAILABLE")}</div><div class="form-row">${field("Штрихкод / GTIN", "barcode", product.barcode || product.gtin || "", "text", 'inputmode="numeric"')}${field("Артикул", "sku", product.sku || "")}</div><div class="form-row">${field("Бренд", "brand", product.brand || "")}${field("Модель", "model", product.model || "")}</div><details><summary>Варианты и характеристики</summary><div class="form">${field("Цвет", "color", product.color || "")}${field("Размер", "size", product.size || "")}${field("Длина", "length", product.length || "")}${["available_colors", "available_sizes", "unavailable_colors", "unavailable_sizes"].map((key, index) => field(["Цвета через запятую", "Размеры через запятую", "Недоступные цвета", "Недоступные размеры"][index], key, Array.isArray(product[key]) ? product[key].join(", ") : "")).join("")}${attributeEditorMarkup()}</div></details>${select("Категория", "category", Object.keys(tree), product.category)}<div id="subcategories"></div><p class="field-note">AI: не отправляйте фото документов, банковских карт, PINFL и других персональных или платёжных данных. Изображения не проходят OCR/DLP-проверку.</p>${field("Приложить фото", "image", "", "file", 'accept="image/jpeg,image/png,image/webp"')}<div class="gallery">${(
       product.image_urls || [product.image_url]
     )
       .filter(Boolean)
@@ -224,6 +225,7 @@ async function editor(product = {}) {
   );
   const form = $("form", modal),
     category = $("[name=category]", modal);
+  const readAttributes = mountAttributeEditor(form, product.attributes);
   function sub() {
     const children = tree[category.value] || {};
     $("#subcategories", modal).innerHTML =
@@ -320,6 +322,7 @@ async function editor(product = {}) {
   form.onsubmit = (event) => {
     event.preventDefault();
     submit(form, async (values) => {
+      values.attributes = readAttributes();
       const data = productFormData(product, values, product.shop_id||shop.id);
       await api.request(
         product.id ? `/products/${Number(product.id)}` : "/products",
@@ -701,19 +704,11 @@ async function go(next = route) {
     } else if (route === "qr") {
       const data = await api.request(endpoint("/qr/customers"));
       html =
-        heading("QR-аудитория") +
-        `<form id="qrScan" class="form card">${textarea("QR покупателя (текст кода)", "qr_token")}${select(
-          "Действие",
-          "mode",
-          [
-            ["subscription", "QR-аудитория"],
-            ["transaction", "QR-сделка"],
-          ],
-        )}${button("Сканировать QR камерой", "barcode", 'data-format="qr"')}<p class="muted">Выберите QR-аудиторию или QR-сделку. В сделке сумма и подтверждение задаются отдельными шагами.</p><button class="button">Принять QR</button></form>` +
+        heading("QR магазина", "Каталог и подписка без покупки") +
+        `<section class="card"><h2>${esc(shop.name)}</h2><canvas id="storeQr"></canvas><p><a href="https://izbor.uz/shop/?id=${Number(shop.id)}" target="_blank" rel="noopener">https://izbor.uz/shop/?id=${Number(shop.id)}</a></p><p>Покажите QR покупателю. Рассылки не требуют оплаты или сканирования продавцом.</p></section><form id="qrScan" class="form card"><h2>Погасить гарантию</h2>${textarea("QR гарантии (текст кода)", "qr_token")}${button("Сканировать QR камерой", "barcode", 'data-format="qr"')}<p>Гарантия будет использована один раз и станет недействительной.</p><button class="button">Погасить гарантию</button></form>` +
         table(rows(data, "customers"), [
-          ["Покупатель", (p) => esc(p.name || p.buyer_name)],
-          ["Сканирования", (p) => esc(p.total_scans)],
-          ["Последнее", (p) => esc(p.last_scanned_at)],
+          ["Подписчик", (p) => esc(p.name || p.buyer_name)],
+          ["Гарантии", (p) => esc(p.warranties_count || 0)],
         ]);
     } else if (route === "profile")
       html =
@@ -723,6 +718,7 @@ async function go(next = route) {
     else html = empty("Страница не найдена");
     if (version !== generation) return;
     $("#view").innerHTML = html;
+    if(route==='qr' && window.QRCode) await window.QRCode.toCanvas(document.querySelector('#storeQr'),`https://izbor.uz/shop/?id=${Number(shop.id)}`,{width:250,margin:4});
     if(route==='pos'&&!allBranches)bindPos(api,shop,()=>go('pos'));
     if(route==='compliance')bindSellerCompliance(api.request,endpoint('/compliance'),()=>go('compliance'));
     if (route === "chats") {
@@ -896,15 +892,10 @@ async function go(next = route) {
       toast("Рассылка отправлена");
     });
     bindForm("#qrScan", async (values) => {
-      const data = await api.request(endpoint("/rewards/scan"), {
-        method: "POST",
-        body: { qr_token: values.qr_token.trim(), mode: values.mode },
+      await api.request(endpoint("/qr/warranties/redeem"), {
+        method: "POST", body: { qr_token: values.qr_token.trim() },
       });
-      if (data.transaction) {
-        sellerTransaction(api, shop.id, data.transaction);
-        return;
-      }
-      toast(`QR принят: ${data.customer?.name || "покупатель"}`);
+      toast("Гарантия использована и больше не действует");
       await go();
     });
   } catch (error) {

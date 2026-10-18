@@ -74,3 +74,31 @@ export function productFormData(product, values, shopId) {
   if (values.image?.size) data.append("image", values.image);
   return data;
 }
+
+// Read both the current JSON object and legacy JSON-encoded attributes.
+export function productAttributes(raw) {
+  if (typeof raw === "string") {
+    try { raw = JSON.parse(raw); } catch { return {}; }
+  }
+  if (!raw || Array.isArray(raw) || typeof raw !== "object") return {};
+  return Object.fromEntries(Object.entries(raw).filter(([key, value]) =>
+    key.trim() && value !== null && value !== undefined &&
+    ["string", "number", "boolean"].includes(typeof value) && String(value).trim()
+  ).map(([key, value]) => [key.trim(), String(value).trim()]));
+}
+const attributeLabels = {
+  brand: "Бренд", model: "Модель", color: "Цвет", size: "Размер", length: "Длина",
+  memory_capacity: "Память / объём", condition: "Состояние", warranty: "Гарантия",
+  material: "Материал", gender_type: "Пол / тип", volume: "Объём",
+  product_type: "Тип продукта", shade: "Оттенок", weight_volume: "Вес / объём",
+  expiry_date: "Срок годности", manufacturer: "Производитель", dimensions: "Размеры",
+  dosage_form: "Форма препарата", dosage: "Дозировка", quantity: "Количество",
+};
+const translatedAttributeLabels = {"en": ["Brand", "Model", "Color", "Size", "Length", "Memory / capacity", "Condition", "Warranty", "Material", "Gender / type", "Volume", "Product type", "Shade", "Weight / volume", "Expiry date", "Manufacturer", "Dimensions", "Dosage form", "Dosage", "Quantity"], "uz": ["Brend", "Model", "Rang", "O‘lcham", "Uzunlik", "Xotira / hajm", "Holat", "Kafolat", "Material", "Jins / tur", "Hajm", "Mahsulot turi", "Tus", "Vazn / hajm", "Yaroqlilik muddati", "Ishlab chiqaruvchi", "O‘lchamlar", "Dori shakli", "Doza", "Miqdor"]};
+export function productSpecifications(product, language = "ru") {
+  const values = productAttributes(product.attributes);
+  for (const key of ["brand", "model", "color", "size", "length"])
+    if (String(product[key] ?? "").trim()) values[key] = String(product[key]).trim();
+  const keys = Object.keys(attributeLabels);
+  return Object.entries(values).map(([key, value]) => [translatedAttributeLabels[language]?.[keys.indexOf(key)] || attributeLabels[key] || key, value]);
+}
