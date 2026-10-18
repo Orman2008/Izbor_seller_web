@@ -1,5 +1,6 @@
+import {mountTelegramLink} from './account-link.js';
 import { $, dialog, field, select, button, submit, toast } from "./ui.js";
-export function editAccount(api, user, onUpdate) {
+export function editAccount(api, user, onUpdate, client='seller') {
   const modal = dialog(
     `<form class="form">${field("Имя", "name", user.name, "text", 'required maxlength="100"')}${select(
       "Язык",
@@ -13,6 +14,8 @@ export function editAccount(api, user, onUpdate) {
     )}${field("Фото профиля", "avatar", "", "file", 'accept="image/jpeg,image/png,image/webp"')}<button class="button">Сохранить</button></form>`,
     "Мой аккаунт",
   );
+  const identities=document.createElement('section');$('.modal-body',modal).append(identities);
+  mountTelegramLink(identities,{client,request:api.request,language:user.language_code||'ru'});
   $("form", modal).onsubmit = (event) => {
     event.preventDefault();
     submit(event.currentTarget, async (values) => {
@@ -69,5 +72,5 @@ export async function deleteAccount(api, onDeleted) {
   };
 }
 export function supportLinks(base, client) {
-  return `<div class="actions"><a href="${base}/legal/${client}/terms" target="_blank" rel="noopener">Условия</a><a href="${base}/legal/${client}/privacy" target="_blank" rel="noopener">Конфиденциальность</a><a href="https://t.me/yaqintop_support_bot" target="_blank" rel="noopener">Поддержка</a></div>`;
+  return `<div class="actions"><a href="${base}/legal/${client}/terms" target="_blank" rel="noopener">Условия</a><a href="${base}/legal/${client}/privacy" target="_blank" rel="noopener">Конфиденциальность</a><a href="https://t.me/izbor_support_bot" target="_blank" rel="noopener">Поддержка</a></div>`;
 }

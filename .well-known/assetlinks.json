@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "uz.mapmarket.seller",
+      "sha256_cert_fingerprints": [
+        "DA:D1:C9:49:03:3E:27:EF:9B:C3:19:34:AA:DD:94:9D:1A:E6:1A:4A:C1:92:A6:84:BA:AA:3D:DC:67:56:06:CB"
+      ]
+    }
+  }
+]

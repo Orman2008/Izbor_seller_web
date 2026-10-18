@@ -33,12 +33,15 @@ export function createApiClient({
   fetchImpl = globalThis.fetch,
   timeout = 15000,
   deviceId = "web-browser-session",
+  sessionStorageKey = null,
+  storage = globalThis.sessionStorage,
 }) {
   const base = resolveApiBaseUrl(baseUrl);
   let access = "",
     refresh = "",
     refreshing = null,
     sessionEpoch = 0;
+  if(sessionStorageKey && storage){try{const saved=JSON.parse(storage.getItem(sessionStorageKey)||'null');if(saved){access=String(saved.token||'');refresh=String(saved.refresh_token||'');}}catch{storage.removeItem(sessionStorageKey);}}
   async function send(
     path,
     { method = "GET", body, signal, auth = true, headers: extraHeaders = {} } = {},
@@ -108,6 +111,7 @@ export function createApiClient({
         await refreshing;
         return send(path, { method, body, signal, auth, headers: extraHeaders }, false);
       }
+      if (response.status === 401 && auth && requestEpoch === sessionEpoch) clear();
       if (!response.ok)
         throw new ApiError(
           data.error || data.message || `Ошибка ${response.status}`,
@@ -134,12 +138,14 @@ export function createApiClient({
     if (newIdentity) sessionEpoch++;
     access = payload.access_token || payload.token || "";
     refresh = payload.refresh_token || "";
+    if(sessionStorageKey && storage)storage.setItem(sessionStorageKey,JSON.stringify({token:access,refresh_token:refresh}));
     return payload;
   }
   function clear() {
     sessionEpoch++;
     access = "";
     refresh = "";
+    if(sessionStorageKey && storage)storage.removeItem(sessionStorageKey);
     clearPrivateMediaImages();
   }
   return {

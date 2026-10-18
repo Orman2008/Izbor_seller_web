@@ -1,4 +1,7 @@
-import { dialog, field, select, button, $, submit, esc } from "./ui.js";
+import {authText,authErrorText,translateAuth} from './auth-copy.js';
+import {otpMarkup,bindOtp,resendCountdown} from './auth-otp.js';
+import { dialog, field, select, button, $, submit as submitForm, esc } from "./ui.js";
+import {createTelegramWebLogin} from "./telegram-auth.js";
 export const specializations = [
   ["TECH", "Техника и электроника"],
   ["CLOTHING", "Одежда"],
@@ -13,187 +16,36 @@ export const specializations = [
   ["HAIRDRESSER", "Парикмахерская"],
   ["GENERAL", "Другое"],
 ];
-export function authFlow({ api, client, baseUrl, onSession, locationPicker }) {
-  let phone = "",
-    signupToken = "",
-    staffClaimToken = "",
-    channel = "telegram",
-    codeLength = 6,
-    disposePicker = () => {},
-    staffTimer;
-  const modal = dialog(
-    "",
-    client === "seller" ? "Кабинет продавца" : "Вход в IZBOR",
-  );
-  const body = $(".modal-body", modal);
-  modal.addEventListener("close", () => {
-    disposePicker();
-    clearInterval(staffTimer);
-  });
-  function render(html) {
-    clearInterval(staffTimer);
-    disposePicker();
-    disposePicker = () => {};
-    body.innerHTML = html + '<p class="form-error" role="alert"></p>';
-  }
-  function accept(payload) {
-    api.setSession(payload);
-    modal.close();
-    onSession(payload);
-  }
-  async function request(channelValue) {
-    channel = channelValue;
-    const result = await api.request("/auth/passwordless/request", {
-      method: "POST",
-      body: { phone, client, channel },
-      auth: false,
-    });
-    codeLength = Number(result.code_length) || 6;
-    const deliveryChannel = result.delivery_channel || channel;
-    render(
-      `<p class="notice">Код отправлен ${deliveryChannel === "sms" ? "по SMS" : "в Telegram"} на ${esc(phone)}.</p><form class="form">${field("Код", "code", "", "text", `required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{${codeLength}}" maxlength="${codeLength}"`)}<button class="button">Продолжить</button></form>${client === "buyer" && deliveryChannel === "telegram" ? '<p class="muted">Откройте чат Verification Codes.</p><a class="button soft" href="https://t.me/" target="_blank" rel="noopener">Открыть Telegram</a>' : ""}<div class="actions auth-actions">${button("Получить код через SMS", "sms")}${button("Изменить номер", "phone")}</div>`,
-    );
-    $("form", body).onsubmit = (event) => {
-      event.preventDefault();
-      submit(event.currentTarget, async (values) => {
-        const payload = await api.request("/auth/passwordless/verify", {
-          method: "POST",
-          body: { phone, client, code: values.code },
-          auth: false,
-        });
-        if (!payload.registration_required) return accept(payload);
-        signupToken = payload.signup_token;
-        details();
-      });
-    };
-  }
-  function phonePage() {
-    render(
-      `<p class="muted">Один аккаунт для приложения и сайта. Сначала отправим код в Telegram.</p><form class="form">${client === "buyer" ? `<label class="field"><span>Телефон</span><div class="buyer-auth-phone"><span>+998</span><input name="phone" type="tel" value="${esc(phone.replace(/^\+998/, ""))}" required autocomplete="tel-national" inputmode="numeric" pattern="[0-9]{9}" placeholder="90 123 45 67" aria-label="Телефон"></div></label>` : field("Телефон", "phone", phone || "+998", "tel", 'required autocomplete="tel" placeholder="+998 90 123 45 67"')}<button class="button">Получить код в Telegram</button><button type="button" data-action="sms">Получить код через SMS</button></form>`,
-    );
-    if (client === "buyer") {
-      const input = $("[name=phone]", body);
-      input.oninput = () => {
-        let digits = input.value.replace(/\D/g, "");
-        if (digits.length > 9 && digits.startsWith("998")) digits = digits.slice(3);
-        input.value = digits.slice(0, 9);
-      };
-    }
-    $("form", body).onsubmit = (event) => {
-      event.preventDefault();
-      submit(event.currentTarget, async (values) => {
-        phone = client === "buyer" ? "+998" + values.phone : values.phone.replace(/[^+\d]/g, "");
-        if (!/^\+998\d{9}$/.test(phone))
-          throw new Error("Введите +998 и 9 цифр номера.");
-        await request("telegram");
-      });
-    };
-  }
-  function details() {
-    render(
-      `<form class="form">${field("Ваше имя", "name", "", "text", 'required maxlength="100" autocomplete="name"')}${
-        client === "seller"
-          ? `${select("Роль", "account_role", [
-              ["owner", "Владелец магазина"],
-              ["staff", "Сотрудник"],
-            ])}<div data-owner>${field("Название магазина", "store_name")}${field("Адрес", "address")}${select("Сфера магазина", "specialization_code", specializations)}<div id="authPicker" class="web-map picker-map"></div><div class="form-row">${field("Широта", "latitude", "", "number", 'step="any" min="-90" max="90"')}${field("Долгота", "longitude", "", "number", 'step="any" min="-180" max="180"')}</div></div><div data-staff hidden>${field("Код магазина", "store_code", "", "text", 'placeholder="MM-…"')}</div>`
-          : ""
-      }<label><input type="checkbox" name="legal" required> Принимаю <a target="_blank" rel="noopener" href="${baseUrl}/legal/${client}/terms">условия</a> и <a target="_blank" rel="noopener" href="${baseUrl}/legal/${client}/privacy">политику</a></label><button class="button">Завершить регистрацию</button></form>`,
-    );
-    if (client === "seller") {
-      $("select", body).onchange = (event) => {
-        $("[data-owner]", body).hidden = event.target.value === "staff";
-        $("[data-staff]", body).hidden = event.target.value !== "staff";
-      };
-      disposePicker =
-        locationPicker?.($("#authPicker"), (point) => {
-          $("[name=latitude]", body).value = point.lat;
-          $("[name=longitude]", body).value = point.lng;
-        }) || (() => {});
-    }
-    $("form", body).onsubmit = (event) => {
-      event.preventDefault();
-      submit(event.currentTarget, async (values) => {
-        if (
-          client === "seller" &&
-          values.account_role === "owner" &&
-          (!values.latitude || !values.longitude)
-        )
-          throw new Error("Выберите точку магазина на карте.");
-        const payload = await api.request("/auth/passwordless/complete", {
-          method: "POST",
-          auth: false,
-          body: {
-            ...values,
-            signup_token: signupToken,
-            accept_privacy: true,
-            accept_terms: true,
-            language_code: "ru",
-          },
-        });
-        if (payload.status === "pending_approval") {
-          staffClaimToken = payload.staff_claim_token || "";
-          render(
-            `<p class="notice">Заявка отправлена владельцу. Держите это окно открытым до одобрения.</p>${button("Проверить статус", "staff-status", `data-id="${esc(payload.request_id)}"`)}`,
-          );
-          const check = async () => {
-            try {
-              const result = await api.request(
-                `/staff-applications/${encodeURIComponent(payload.request_id)}/status`,
-                { auth: false, headers: { "X-Staff-Claim-Token": staffClaimToken } },
-              );
-              if (!modal.open) return;
-              if (result.token || result.access_token) accept(result);
-              else if (result.status !== "pending") {
-                $(".form-error", body).textContent =
-                  `Статус: ${result.status}. При одобрении войдите по коду.`;
-                clearInterval(staffTimer);
-              }
-            } catch (error) {
-              if (modal.open)
-                $(".form-error", body).textContent = error.message;
-            }
-          };
-          staffTimer = setInterval(() => {
-            if (!document.hidden) check();
-          }, 8000);
-          check();
-          return;
-        }
-        accept(payload);
-      });
-    };
-  }
-  body.addEventListener("click", async (event) => {
-    const action = event.target.closest("[data-action]");
-    if (!action) return;
-    try {
-      if (action.dataset.action === "phone") phonePage();
-      if (action.dataset.action === "sms") {
-        const input = $("[name=phone]", body);
-        if (input) phone = client === "buyer" ? "+998" + input.value : input.value.replace(/[^+\d]/g, "");
-        if (!/^\+998\d{9}$/.test(phone))
-          throw new Error("Введите номер телефона.");
-        action.disabled = true;
-        await request("sms");
-      }
-      if (action.dataset.action === "staff-status") {
-        const payload = await api.request(
-          `/staff-applications/${encodeURIComponent(action.dataset.id)}/status`,
-          { auth: false, headers: { "X-Staff-Claim-Token": staffClaimToken } },
-        );
-        if (payload.access_token || payload.token) accept(payload);
-        else
-          $(".form-error", body).textContent =
-            payload.status === "approved"
-              ? "Одобрено. Войдите по коду."
-              : `Статус: ${payload.status}`;
-      }
-    } catch (error) {
-      $(".form-error", body).textContent = error.message;
-    } finally {
-      action.disabled = false;
-    }
-  });
-  phonePage();
+
+export function authFlow({api,client,baseUrl,onSession,locationPicker,initialMode='login'}){
+ const language=()=>document.documentElement.lang||'ru';
+ const submit=async(form,task)=>{await submitForm(form,task);const error=$('.form-error',body);if(error)error.textContent=authErrorText(error.textContent,language());translateAuth(body,language());};
+ let phone='',signupToken='',codeLength=6,mode=initialMode==='register'?'owner':'login',invite='',preview=null,payload=null,disposePicker=()=>{},revision=0,draft={};
+ let stopCountdown=()=>{};
+ let draftTimer,saveQueue=Promise.resolve();
+ const modal=dialog('',client==='seller'?'Кабинет продавца':'Вход в IZBOR'),body=$('.modal-body',modal);
+ let savedIntent=null;try{savedIntent=JSON.parse(sessionStorage.getItem('izbor.auth.intent.seller')||'null');}catch{sessionStorage.removeItem('izbor.auth.intent.seller');}
+ if(client==='seller'&&savedIntent?.expires_at>Date.now()){mode=savedIntent.mode;invite=savedIntent.invite||'';}
+ const telegram=createTelegramWebLogin({client,request:api.request});
+ modal.addEventListener('close',()=>{telegram.cancel().catch(()=>{});stopCountdown();clearTimeout(draftTimer);if($('[data-action=save-draft]',body))saveDraft().catch(()=>{});disposePicker();});
+ function render(html){stopCountdown();clearTimeout(draftTimer);disposePicker();disposePicker=()=>{};body.innerHTML=html+'<p class="form-error" role="alert"></p>';translateAuth(body,language());}
+ const post=(path,values)=>api.request(path,{method:'POST',body:values});
+ function consent(){return `<label><input type="checkbox" name="legal" required> Принимаю <a target="_blank" rel="noopener" href="${esc(baseUrl)}/legal/${client}/terms">условия</a> и <a target="_blank" rel="noopener" href="${esc(baseUrl)}/legal/${client}/privacy">политику конфиденциальности</a></label>`;}
+ function accept(state){const session={...payload,...state};if(session.token||session.access_token)api.setSession(session);modal.close();onSession(session);}
+ async function afterAuth(value){if(invite&&!preview)preview=await post('/auth/employee-invitations/preview',{code:invite});sessionStorage.removeItem('izbor.auth.intent.seller');payload=value;api.setSession(value);if(client==='buyer')return accept(value);if(invite&&preview){await post('/auth/employee-invitations/join',{code:invite});invite='';preview=null;}await sellerGate();}
+ async function sellerGate(){const state=await api.request('/auth/account/seller/state');const stores=state.stores||[];if(state.onboarding?.status==='IN_PROGRESS'){revision=state.onboarding.revision;draft=state.onboarding.draft||{};return ownerPage();}if(stores.length===1)return selectStore(stores[0].id);if(stores.length>1){render(`<h3>Выберите магазин</h3>${stores.map(s=>button(`${s.name} · ${s.role==='owner'?'Владелец':s.role==='manager'?'Менеджер':'Продавец'}`,'select-store',`data-id="${Number(s.id)}"`)).join('')}`);return;}if(mode==='owner')return ownerPage();render(`<p>У вас пока нет активных магазинов. Аккаунт сохранён.</p>${button('Создать магазин','owner')}${button('Я сотрудник','staff')}`);}
+ async function selectStore(id){const state=await post('/auth/account/seller/select',{shop_id:Number(id)});accept(state);}
+ function loginPage(){render(`<h2>Добро пожаловать в IZBOR</h2><p>Войдите или создайте аккаунт, чтобы продолжить.</p><form class="form" data-telegram>${consent()}<button class="button">Продолжить через Telegram</button></form><p class=\"muted\">или</p>${button('Получить SMS-код','phone')}${client==='seller'?button('Я сотрудник','staff'):''}`);$('form',body).onsubmit=e=>{e.preventDefault();submit(e.currentTarget,async()=>{sessionStorage.setItem('izbor.auth.intent.seller',JSON.stringify({mode,invite,expires_at:Date.now()+300000}));location.assign(await telegram.start());});};}
+ function invitePage(){render(`<form class="form">${field('Код приглашения сотрудника','code',invite,'text','required')}<button class="button">Проверить приглашение</button></form>`);$('form',body).onsubmit=e=>{e.preventDefault();submit(e.currentTarget,async values=>{invite=values.code.trim();preview=await post('/auth/employee-invitations/preview',{code:invite});render(`<h3 data-auth-user-value>${esc(preview.shop_name)}</h3><p>Роль: ${preview.role==='manager'?'Менеджер':'Продавец'}</p>${button('Продолжить в этот магазин','confirm-invite')}${button('Другой код','staff')}`);});};}
+ async function request(){const result=await api.request('/auth/account/phone/request',{method:'POST',auth:false,body:{phone,client,channel:'sms'}});if(result.delivery_channel!=='sms')throw Error('SMS-провайдер не подтвердил отправку. Используйте Telegram.');codeLength=Math.min(8,Math.max(4,Number(result.code_length)||6));render(`<p>Код отправлен по SMS на ${esc(phone)}.</p><form class="form">${otpMarkup(codeLength)}<button class="button">Продолжить</button></form>${button('Получить код через SMS','sms')}${button('Изменить номер','phone')}${button('Вернуться к Telegram','signin')}`);bindOtp(body);stopCountdown=resendCountdown($('[data-action=sms]',body),result.retry_after_seconds,{label:authText('Получить код через SMS',language())});$('form',body).onsubmit=e=>{e.preventDefault();submit(e.currentTarget,async v=>{if(!new RegExp('^\\d{'+codeLength+'}$').test(v.code))throw Error('Проверьте код из SMS.');const result=await api.request('/auth/account/phone/verify',{method:'POST',auth:false,body:{phone,client,code:v.code}});if(result.registration_required){signupToken=result.signup_token;profile();}else await afterAuth(result);});};}
+ function phonePage(){render(`<form class="form">${field('Телефон','phone',phone||'+998','tel','required autocomplete="tel"')}<button class="button">Получить код через SMS</button></form>${button('Вернуться к Telegram','signin')}`);$('form',body).onsubmit=e=>{e.preventDefault();submit(e.currentTarget,async v=>{phone=v.phone.replace(/[^+\d]/g,'');if(!/^\+998\d{9}$/.test(phone))throw Error('Введите +998 и 9 цифр номера.');await request();});};}
+ function profile(){render(`<form class="form">${field('Ваше имя','name','','text','required maxlength="100"')}${consent()}<button class="button">Продолжить</button></form>`);$('form',body).onsubmit=e=>{e.preventDefault();submit(e.currentTarget,async v=>afterAuth(await api.request('/auth/account/phone/complete',{method:'POST',auth:false,body:{name:v.name,signup_token:signupToken,accept_privacy:true,accept_terms:true,language_code:language()}})));};}
+ function ownerPage(){render(`<h3>Создание магазина</h3><p>Черновик сохраняется на сервере. Магазин появится только после подтверждения.</p><form class="form">${field('Название магазина','name',draft.name||'','text','required maxlength="100"')}${select('Сфера магазина','specialization_code',specializations,draft.specialization_code||'GENERAL')}${field('Адрес','address',draft.address||'','text','required maxlength="500"')}<div id="authPicker" class="web-map picker-map"></div><div class="form-row">${field('Широта','latitude',draft.latitude??'','number','required step="any" min="-90" max="90"')}${field('Долгота','longitude',draft.longitude??'','number','required step="any" min="-180" max="180"')}</div><button class="button">Создать магазин</button><button type="button" data-action="save-draft">Сохранить черновик</button></form>`);disposePicker=locationPicker?.($('#authPicker',body),point=>{$('[name=latitude]',body).value=point.lat;$('[name=longitude]',body).value=point.lng;})||(()=>{});$('form',body).onsubmit=e=>{e.preventDefault();submit(e.currentTarget,async()=>{await saveDraft();const result=await post('/auth/account/seller/onboarding/complete',{});await selectStore(result.shop_id);});};}
+ async function saveDraft(){clearTimeout(draftTimer);const form=$('form',body);if(!form||!$('[data-action=save-draft]',body))return;const v=Object.fromEntries(new FormData($('form',body)));const patch={name:v.name,address:v.address,specialization_code:v.specialization_code,step:2};if(v.latitude!==''&&v.longitude!==''){patch.latitude=Number(v.latitude);patch.longitude=Number(v.longitude);}const run=async()=>{const result=await api.request('/auth/account/seller/onboarding',{method:'PUT',body:{...patch,revision}});revision=result.revision;draft=result.draft;};saveQueue=saveQueue.catch(()=>{}).then(run);return saveQueue;}
+ body.addEventListener('input',()=>{if(!$('[data-action=save-draft]',body))return;clearTimeout(draftTimer);draftTimer=setTimeout(()=>saveDraft().catch(error=>{const el=$('.form-error',body);if(el)el.textContent=authErrorText(error.message,language());}),700);});
+ body.addEventListener('click',async e=>{const action=e.target.closest('[data-action]');if(!action)return;action.disabled=true;try{switch(action.dataset.action){case'phone':await telegram.cancel();phonePage();break;case'owner':mode='owner';if(api.authenticated)ownerPage();else loginPage();break;case'staff':mode='staff';invitePage();break;case'signin':mode='login';loginPage();break;case'confirm-invite':if(api.authenticated){await post('/auth/employee-invitations/join',{code:invite});invite='';await sellerGate();}else loginPage();break;case'sms':{const input=$('[name=phone]',body);if(input)phone=input.value.replace(/[^+\d]/g,'');if(!/^\+998\d{9}$/.test(phone))throw Error('Введите номер телефона.');await request('sms');break;}case'select-store':await selectStore(action.dataset.id);break;case'save-draft':await saveDraft();$('.form-error',body).textContent='Черновик сохранён';break;}}catch(error){const el=$('.form-error',body);if(el)el.textContent=authErrorText(error.message,language());}finally{action.disabled=false;}});
+ if(telegram.pending()){render(`<p>Проверяем вход через Telegram…</p>${button('Получить SMS-код','phone')}`);telegram.waitForCompletion({isActive:()=>modal.open}).then(value=>{if(value&&modal.open)return afterAuth(value);}).catch(error=>{if(modal.open){loginPage();$('.form-error',body).textContent=authErrorText(error.message,language());}});}
+ else if(api.authenticated&&client==='seller')sellerGate().catch(e=>{render(`<p>${esc(e.message)}</p>${button('Повторить','signin')}`);});
+ else loginPage();
+ return modal;
 }

@@ -40,6 +40,7 @@ const api = createApiClient({
   baseUrl: base,
   deviceId: `seller-web:${crypto.randomUUID()}`,
   timeout: 30000,
+  sessionStorageKey: "izbor.seller.web.session",
 });
 installPrivateMediaImages({request: api.request, baseUrl: base});
 let user = null,
@@ -86,18 +87,20 @@ const image = (url, title = "Фото товара") => {
     : "";
 };
 const endpoint = (suffix) => `/shops/${Number(shop.id)}${suffix}`;
-export function beginSellerLogin() { login(); }
-function login() {
+export function beginSellerLogin(mode) { login(mode); }
+function login(mode) {
+  const requestedRoute = nav.some(([key]) => key === location.hash.slice(1)) ? location.hash.slice(1) : "dashboard";
   authFlow({
     api,
     client: "seller",
+    initialMode: mode,
     baseUrl: base,
     locationPicker,
     onSession: async (payload) => {
       user = payload.user;
       shop = payload.shop;
-      route = "dashboard";
-      window.history.replaceState(null, "", location.pathname + location.search + "#dashboard");
+      route = requestedRoute;
+      window.history.replaceState(null, "", location.pathname + location.search + "#" + route);
       try {
         if (!shop) {
           const me = await api.request("/users/me");
@@ -106,7 +109,7 @@ function login() {
         }
         shops = rows(await api.request("/users/me/shops"));
         shop = shops.find((s) => Number(s.id) === Number(shop?.id)) || shop;
-        await go("dashboard");
+        await go(requestedRoute);
       window.dispatchEvent(new window.Event("seller-authenticated"));
       } catch (error) {
         $("#view").innerHTML = errorView(error);
@@ -509,7 +512,7 @@ async function go(next = route) {
     return;
   }
   if (!shop) {
-    $("#view").innerHTML = empty("Нет доступного магазина");
+    $("#view").innerHTML = `${empty("Нет доступного магазина")}${button("Продолжить настройку или присоединиться", "login")}`;
     return;
   }
   $("#storeName").textContent=shop.business_name||shop.name;
