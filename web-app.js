@@ -59,8 +59,10 @@ let user = null,
   importBatch;
 let allBranches=false,branchPageData=null;
 const rootId=()=>Number(shop?.root_shop_id||shop?.business_id||shop?.id);
+const sellerSymbols={dashboard:'<path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/>',products:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',qr:'<path d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6M9 9h6v6H9z"/>',broadcasts:'<path d="m4 10 15-6v16L4 14Z"/><path d="M7 15v5h4l-2-4"/>',clients:'<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0m0-17a4 4 0 0 1 0 8m3 3a7 7 0 0 1 3 6"/>',ai:'<path d="m12 3 2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6Z"/>',profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',chats:'<path d="M21 15H8l-5 5V4h18Z"/>',analytics:'<path d="M4 20V10m8 10V4m8 16v-8M2 22h20"/>',store:'<path d="M3 10h18l-2-7H5Z"/><path d="M4 10v11h16V10M9 21v-7h6v7"/>'};
+function sellerIcon(name){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${sellerSymbols[name]||sellerSymbols.products}</svg>`;}
 const nav = [
-  ["dashboard", "Обзор"],
+  ["dashboard", "Главная"],
   ["products", "Товары"],
   ["catalog", "Каталог Izbor Seller"],
   ["imports", "Импорт и API"],
@@ -68,7 +70,8 @@ const nav = [
   ["chats", "Чаты"],
   ["reviews", "Отзывы"],
   ["broadcasts", "Рассылка"],
-  ["qr", "QR / покупатели"],
+  ["qr", "QR"],
+  ["clients", "Клиенты"],
   ["analytics", "Аналитика"],
   ["plan", "Тариф"],
   ["photo-navigation", "Фото-маршрут"],
@@ -80,7 +83,7 @@ const nav = [
   ["ranking", "Как формируется выдача"],
 ];
 $("#app").outerHTML =
-  `<a class="skip-link" href="#view">К содержимому</a><div class="web-shell"><aside class="web-sidebar"><a class="web-brand" href="#dashboard"><img src="assets/izbor-icon-192.png" alt="Izbor Seller"><span>Izbor Seller<br><small class="muted">Seller</small></span></a><nav aria-label="Кабинет продавца">${nav.map(([key, title]) => `<a href="#${key}" data-nav="${key}">${title}</a>`).join("")}</nav><div class="sidebar-footer">${supportLinks(base, "seller")}</div></aside><main class="web-main"><header class="web-header"><span id="storeName">Кабинет продавца</span><div id="branchContext"></div><div class="actions">${button("Войти", "login")}${button("Выйти", "logout")}</div></header><section id="view" class="web-content" aria-live="polite"></section></main></div>`;
+  `<a class="skip-link" href="#view">К содержимому</a><div class="web-shell"><aside class="web-sidebar"><a class="web-brand" href="#dashboard"><img src="assets/izbor-icon-192.png" alt="Izbor Seller"><span>Izbor Seller<br><small class="muted">Бизнес-центр</small></span></a><nav aria-label="Кабинет продавца">${nav.map(([key, title]) => `<a href="#${key}" data-nav="${key}"><span class="seller-nav-icon">${sellerIcon(key)}</span><span>${title}</span></a>`).join("")}</nav><div class="sidebar-footer">${supportLinks(base, "seller")}</div></aside><main class="web-main"><header class="web-header"><span id="storeName">Кабинет продавца</span><div id="branchContext"></div><label class="site-language"><span class="sr-only">Язык</span><select data-site-language aria-label="Язык"><option value="ru">RU</option><option value="uz">UZ</option><option value="en">EN</option></select></label><div class="actions">${button("Войти", "login")}${button("Выйти", "logout")}</div></header><section id="view" class="web-content" aria-live="polite"></section></main><nav class="seller-mobile-tabs" aria-label="Основные разделы">${[["dashboard","Главная"],["products","Товары"],["qr","QR"],["clients","Клиенты"],["profile","Профиль"]].map(([key,title])=>`<a href="#${key}" data-nav="${key}">${sellerIcon(key)}<span>${title}</span></a>`).join("")}</nav></div>`;
 const image = (url, title = "Фото товара") => {
   const src = mediaUrl(url, base, true);
   return src
@@ -146,12 +149,29 @@ const metricLabels = {
   errors: "Ошибки",
 };
 let integrationProviders = [];
-let analyticsDays = 30;
+let analyticsDays = 7;
 function timelineChart(points) {
   const data = rows(points).filter(point => Number.isFinite(Number(point.value)));
   if (!data.length) return '<p class="empty">За этот период нет данных для графика.</p>';
   const max = Math.max(1,...data.map(point => Number(point.value)));
   return '<div class="dashboard-bars" role="img" aria-label="Просмотры магазина по дням">' + data.map(point => `<div title="${esc(point.day)}: ${Number(point.value)}"><span class="chart-bar" style="height:${Math.max(0,Number(point.value))*100/max}%"></span><small>${esc(point.day)}</small></div>`).join('') + '</div>';
+}
+function quickActions(){
+  const owner=shop.position==='owner';
+  const can=permission=>owner||shop.permissions?.[permission]===true;
+  return `<section class="section app-quick-section"><h2>Быстрые действия</h2><div class="app-quick-actions">${can('products')?`<button data-action="new-product">${sellerIcon('products')}<span>Добавить</span></button>`:''}${can('qr')?`<a href="#qr">${sellerIcon('qr')}<span>QR</span></a>`:''}${owner?`<a href="#broadcasts">${sellerIcon('broadcasts')}<span>Промо</span></a>`:''}${can('products')&&can('ai')?`<button data-action="new-product" data-open-ai>${sellerIcon('ai')}<span>AI</span></button>`:''}</div></section>`;
+}
+function sellerHome(data,plan,products){
+  const overview=data.overview||{}, detailed=Number(data.access?.priority)>0;
+  const shown=value=>value===undefined||value===null?'—':esc(value);
+  const attention=(products||[]).filter(p=>p.in_stock===false||p.stock_status==='UNCONFIRMED');
+  const greeting=new Date().getHours()<12?'Доброе утро':new Date().getHours()<18?'Добрый день':'Добрый вечер';
+  return `<header class="dashboard-top"><div><p class="eyebrow"><span>БИЗНЕС-ЦЕНТР</span> · ${esc(shop.name)}</p><h1>${greeting}</h1><p>Вот что происходит с бизнесом сегодня</p></div><a class="button soft" href="#store">Мой магазин</a></header>
+  <section class="app-primary-metric"><div><span>Просмотры магазина</span><strong>${shown(overview.store_views)}</strong><small><span>За период</span> · ${analyticsDays} <span>дней</span></small></div>${sellerIcon('analytics')}</section>
+  <div class="app-secondary-metrics"><article><span>Клиенты</span><strong>${detailed?shown(overview.unique_visitors):'—'}</strong>${!detailed?'<small>Доступно с PRO</small>':''}</article><article><span>Маршруты</span><strong>${detailed?shown(overview.routes):'—'}</strong>${!detailed?'<small>Доступно с PRO</small>':''}</article><article><span>Внимание</span><strong>${products?attention.length:'—'}</strong><small>Среди последних товаров</small></article></div>
+  ${quickActions()}
+  <div class="dashboard-grid"><section class="card dashboard-chart"><div class="section-head"><h2>Динамика</h2><a href="#analytics">Аналитика ↗</a></div><p class="muted"><span>Интерес покупателей к магазину</span> · ${analyticsDays} <span>дней</span></p>${detailed?timelineChart(data.timeline):'<p class="notice">Расширенная аналитика доступна с PRO.</p>'}</section><section class="card dashboard-store-state"><h2>Мой магазин</h2><p>${esc(shop.name)}</p><p class="muted">${esc(shop.address||'Адрес не указан')}</p><dl><div><dt>Тариф</dt><dd>${esc(String(plan.current_plan||'FREE').replaceAll('_',' '))}</dd></div><div><dt>Товары</dt><dd>${shown(plan.product_usage)} / ${Number(plan.product_limit)===-1?'Без лимита':shown(plan.product_limit)}</dd></div></dl><a class="button soft" href="#store">Настройки магазина</a></section></div>
+  <section class="section"><div class="section-head"><h2>Требуют внимания</h2><a href="#products">Все товары ↗</a></div>${!products?'<p class="notice">Выберите доступный филиал и откройте товары для проверки наличия.</p>':attention.length?table(attention,[["Товар",p=>esc(p.title)],["Наличие",p=>p.stock_status==='UNCONFIRMED'?'Не подтверждено':'Нет в наличии']]):'<div class="card"><p class="muted">Среди последних загруженных товаров нет неподтверждённых или отсутствующих.</p></div>'}</section>`;
 }
 function infoCards(data) {
   return `<div class="stats">${Object.entries(data || {})
@@ -520,7 +540,7 @@ async function go(next = route) {
   }
   $("#storeName").textContent=shop.business_name||shop.name;
   const owner=shop.position==='owner';
-  const routePermission={imports:'owner',pos:'owner',branches:'owner',catalog:'products',products:'products_view',chats:'chats',analytics:'analytics',store:'profile',team:'staff',ai:'ai',qr:'qr'};
+  const routePermission={imports:'owner',pos:'owner',branches:'owner',catalog:'products',products:'products_view',chats:'chats',analytics:'analytics',store:'profile',team:'staff',ai:'ai',qr:'qr',clients:'qr'};
   document.querySelectorAll('[data-nav]').forEach(link=>{
     const permission=routePermission[link.dataset.nav];
     link.hidden=!owner&&shop.permissions&&permission&&shop.permissions[permission]!==true;
@@ -576,7 +596,7 @@ async function go(next = route) {
       else html+=table(items,[['Филиал',p=>esc(p.branch_name)+' · '+esc(p.branch_code)],['Запись',p=>esc(p.name||p.product_name||p.text||p.id)],['Статус / роль',p=>esc(p.status||p.role||'')]]);
       html+='<div class="actions">'+(page?button('Назад','previous'):'')+(data.has_more?button('Далее','next'):'')+'</div>';
     }
-    else if(allBranches&&['catalog','store','photo-navigation','broadcasts'].includes(route)) html=heading(nav.find(n=>n[0]===route)?.[1]||'Магазин')+'<p class="notice">Выберите конкретный филиал в поле «Филиал» для этой операции.</p>';
+    else if(allBranches&&['catalog','store','photo-navigation','broadcasts','clients'].includes(route)) html=heading(nav.find(n=>n[0]===route)?.[1]||'Магазин')+'<p class="notice">Выберите конкретный филиал в поле «Филиал» для этой операции.</p>';
     else if (route === "products") html = await loadProducts();
     else if (route === "catalog") html = await catalog();
     else if (route === "imports") html = await imports();
@@ -604,7 +624,7 @@ async function go(next = route) {
         ]);
     } else if (route === "dashboard" && shop.position === "seller") {
       html =
-        heading("Обзор магазина", shop.name) +
+        heading("Главная", shop.name) +
         infoCards({ product_usage: shop.product_count || 0 }) +
         '<p>Расширенная аналитика недоступна вашей роли.</p><a class="button" href="#products">Открыть товары</a>';
     } else if (route === "analytics" || route === "dashboard") {
@@ -626,10 +646,8 @@ async function go(next = route) {
         )}</section>`;
       if (route === "dashboard") {
         const plan = await api.request(endpoint("/plan"));
-        const greeting = new Date().getHours() < 12 ? "Доброе утро" : new Date().getHours() < 18 ? "Добрый день" : "Добрый вечер";
-        html = `<div class="dashboard-top"><div><p class="eyebrow">БИЗНЕС-ЦЕНТР</p><h1>${greeting}, ${esc(shop.name)}</h1><p>Последние ${analyticsDays} дней · реальные данные магазина</p></div><div class="actions">${button("+ Добавить товар", "new-product")}<a class="button soft" href="#imports">Импортировать</a></div></div>` +
-          infoCards({store_views:data.overview?.store_views ?? "Нет данных",product_views:data.overview?.product_views ?? "Нет данных",routes:data.overview?.routes ?? "Нет данных",product_usage:plan.product_usage ?? "Нет данных"}) +
-          `<div class="dashboard-grid"><section class="card dashboard-chart"><h2>Просмотры магазина</h2><p class="muted">По дням · <a href="#analytics">Открыть аналитику ↗</a></p>${timelineChart(data.timeline)}</section><section class="card dashboard-store-state"><h2>Состояние магазина</h2><p>Тариф <b>${esc(String(plan.current_plan || "FREE").replace("BUSINESS_PLUS","BUSINESS PLUS"))}</b></p><p>Товары <b>${esc(plan.product_usage ?? "—")} / ${plan.product_limit === -1 ? "Без лимита" : esc(plan.product_limit ?? "—")}</b></p><p>Адрес <b>${esc(shop.address || "Не указан")}</b></p><p>Проверка <b>${esc(shop.verification_status || "Нет данных")}</b></p><a href="#store">Настройки магазина ↗</a></section></div><section class="section"><h2>Популярные товары</h2>${table(rows(data,"popular_products"),[["Товар",p=>esc(p.title||p.product_title)],["Просмотры",p=>esc(p.views??p.view_count??"—")]])}</section><section class="card"><h2>Работа с магазином</h2><p class="muted">Цены, наличие и сообщения покупателям — из одного кабинета.</p><div class="actions"><a class="button soft" href="#products">Товары</a><a class="button soft" href="#chats">Чаты</a><a class="button soft" href="#reviews">Отзывы</a></div></section>`;
+        const recentProducts=!allBranches&&(shop.position==='owner'||shop.permissions?.products_view===true)?rows(await api.request(`/products?${query({shop_id:shop.id,limit:24,sort:'new'})}`)):null;
+        html = sellerHome(data,plan,recentProducts);
       }
       if (route === "analytics") {
         html +=
@@ -701,6 +719,9 @@ async function go(next = route) {
           ],
         ) +
         pricingPreview() + `<div class="notice"><p>Для подключения или изменения тарифа обратитесь в поддержку.</p>${supportLinks(base, "seller")}</div>`;
+    } else if (route === "clients") {
+      const data=await api.request(endpoint("/qr/customers"));
+      html=heading("Клиенты","Подписчики вашего магазина")+`<div class="actions">${shop.position==='owner'?'<a class="button" href="#broadcasts">Рассылка</a>':''}<a class="button soft" href="#qr">QR магазина</a></div>`+table(rows(data,"customers"),[["Подписчик",p=>esc(p.name||p.buyer_name)],["Гарантии",p=>esc(p.warranties_count||0)]]);
     } else if (route === "qr") {
       const data = await api.request(endpoint("/qr/customers"));
       html =
