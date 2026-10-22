@@ -255,7 +255,9 @@ html[data-controls-motion=true] :is(.icon-button,.favorite-button,.favorite-btn,
 html[data-controls-motion=true] :is(:disabled,[aria-disabled=true],[aria-busy=true]){scale:1;cursor:default}
 html[data-controls-motion=true] :is(button,a.button,a.site-button,a[data-nav],summary):focus-visible{outline:3px solid var(--primary-readable,var(--primary,#0874ab));outline-offset:3px}
 @media(hover:hover) and (pointer:fine){html[data-controls-motion=true] :is(.button,.site-button):not(:disabled):not([aria-busy=true]):hover{box-shadow:0 3px 10px #0874ab20}html[data-controls-motion=true] :is(.list-card,.chip,a[data-nav]):not(:disabled):hover{background-color:var(--primary-soft,#e9f5fb)}}
-html[data-brand-product] .izbor-navigation-track{position:relative;isolation:isolate}
+html[data-brand-product] .izbor-navigation-track{isolation:isolate}
+/* Bottom navigation keeps its viewport-fixed positioning while the active indicator animates. */
+html[data-brand-product] .izbor-navigation-track:not(.mobile-nav):not(.seller-mobile-tabs){position:relative}
 html[data-brand-product] .izbor-navigation-track>:is(button,a){position:relative;z-index:1}
 html[data-brand-product] .izbor-navigation-track .nav-motion-indicator{position:absolute;top:0;left:0;z-index:0;border-radius:16px;background:var(--primary-soft,#e9f5fb);pointer-events:none;transition:none}
 html[data-brand-product] .izbor-navigation-track .nav-motion-indicator.motion-ready{transition:transform var(--motion-navigation) var(--motion-ease),width var(--motion-navigation) var(--motion-ease),height var(--motion-navigation) var(--motion-ease)}
