@@ -26,21 +26,25 @@
     if (modulePromise) return modulePromise;
     for (const path of ['shared/design.css','shared/appearance.css']) stylesheet(path);
     modulePromise = (async () => {
-      return import('./web-app.js?v=20261022-motion');
+      return import('./web-app.js?v=20261022-session');
     })().catch(error => { modulePromise = null; throw error; });
     return modulePromise;
   }
-  async function begin(mode) {
+  let starting = false;
+  async function begin(mode, automatic = false) {
+    if(starting)return;
+    starting = true;
     status.hidden = true;
     const buttons = [...document.querySelectorAll('[data-seller-auth]')]; buttons.forEach(b => b.disabled = true);
     let timer;
     try {
       const module = await Promise.race([loadDashboard(),new Promise((_,reject) => { timer = setTimeout(() => reject(new Error('Кабинет загружается слишком долго. Проверьте соединение и повторите.')),20000); })]);
-      module.beginSellerLogin(mode);
+      if(sessionStorage.getItem('izbor.telegram.pending.seller'))module.beginSellerLogin(mode);
+      else if(!await module.resumeSellerSession() && !automatic)module.beginSellerLogin(mode);
     } catch (error) {
       status.querySelector('span').textContent = `Не удалось открыть кабинет. ${error.message}`;
       status.hidden = false;
-    } finally { clearTimeout(timer); buttons.forEach(b => b.disabled = false); }
+    } finally { starting = false; clearTimeout(timer); buttons.forEach(b => b.disabled = false); }
   }
   document.addEventListener('click', event => {
     const button = event.target.closest('[data-seller-auth]');
@@ -60,7 +64,5 @@
     }, {threshold:.05});
     for (const section of document.querySelectorAll('.reveal')) { section.classList.add('is-entering'); observer.observe(section); }
   }
-  if (sessionStorage.getItem('izbor.telegram.pending.seller') || sessionStorage.getItem('izbor.seller.web.session')) begin('login');
-  // A dashboard deep link still starts with an explicit authentication gate.
-  if (['dashboard','products','catalog','imports','chats','reviews','analytics','plan','store','profile','team','qr','clients','branches','ai','warranties','discounts','loyalty','promotion','invitations','pos','photo-navigation','compliance','ranking'].includes(location.hash.slice(1))) begin('login');
+  begin('login', true);
 })();

@@ -13,7 +13,7 @@ import {
   query,
   rows,
   installPrivateMediaImages,
-} from "./shared/api.js";
+} from "./shared/api.js?v=20261023-session";
 import {
   $,
   esc,
@@ -42,6 +42,7 @@ const api = createApiClient({
   baseUrl: base,
   deviceId: `seller-web:${crypto.randomUUID()}`,
   timeout: 30000,
+  webClient: "seller",
   sessionStorageKey: "izbor.seller.web.session",
 });
 installPrivateMediaImages({request: api.request, baseUrl: base});
@@ -95,6 +96,17 @@ const image = (url, title = "Фото товара") => {
     : "";
 };
 const endpoint = (suffix) => `/shops/${Number(shop.id)}${suffix}`;
+export async function resumeSellerSession() {
+  if (!await api.restore()) return false;
+  const me = await api.request('/users/me');
+  user = me.user;
+  shops = rows(await api.request('/users/me/shops'));
+  shop = shops.find(s => Number(s.id) === Number(me.shop?.id)) || (shops.length === 1 ? shops[0] : null);
+  const requested = nav.some(([key]) => key === location.hash.slice(1)) ? location.hash.slice(1) : 'dashboard';
+  await go(requested);
+  window.dispatchEvent(new window.Event('seller-authenticated'));
+  return true;
+}
 export function beginSellerLogin(mode) { login(mode); }
 function login(mode) {
   const requestedRoute = nav.some(([key]) => key === location.hash.slice(1)) ? location.hash.slice(1) : "dashboard";

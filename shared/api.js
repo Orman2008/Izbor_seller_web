@@ -33,6 +33,7 @@ export function createApiClient({
   fetchImpl = globalThis.fetch,
   timeout = 15000,
   deviceId = "web-browser-session",
+  webClient = null,
   sessionStorageKey = null,
   storage = globalThis.sessionStorage,
 }) {
@@ -58,7 +59,7 @@ export function createApiClient({
     try {
       const isForm =
         typeof FormData !== "undefined" && body instanceof FormData;
-      const headers = { "X-Device-Id": deviceId, ...extraHeaders };
+      const headers = { "X-Device-Id": deviceId, ...(webClient && path.startsWith("/auth/") ? {"X-Web-Client": webClient} : {}), ...extraHeaders };
       if (auth && access) headers.Authorization = `Bearer ${access}`;
       if (body !== undefined && !isForm)
         headers["Content-Type"] = "application/json";
@@ -68,7 +69,7 @@ export function createApiClient({
         body:
           body === undefined ? undefined : isForm ? body : JSON.stringify(body),
         signal: controller.signal,
-        credentials: "omit",
+        credentials: webClient ? "include" : "omit",
       });
       let data = {};
       if (response.status !== 204) {
@@ -83,7 +84,7 @@ export function createApiClient({
             );
         }
       }
-      if (response.status === 401 && auth && refresh && retry) {
+      if (response.status === 401 && auth && (refresh || webClient) && retry) {
         if (requestEpoch !== sessionEpoch)
           throw new ApiError(
             "Сессия изменилась. Повторите действие.",
@@ -92,7 +93,7 @@ export function createApiClient({
           );
         if (!refreshing)
           refreshing = send(
-            "/auth/refresh",
+            webClient ? "/auth/web/session" : "/auth/refresh",
             { method: "POST", body: { refresh_token: refresh }, auth: false },
             false,
           )
@@ -102,7 +103,7 @@ export function createApiClient({
               return setSession(payload, false);
             })
             .catch((error) => {
-              if (requestEpoch === sessionEpoch) clear();
+              if (requestEpoch === sessionEpoch && [401, 403].includes(error.status)) clear();
               throw error;
             })
             .finally(() => {
@@ -135,10 +136,14 @@ export function createApiClient({
     }
   }
   function setSession(payload, newIdentity = true) {
+    if(webClient && payload.web_session !== true) throw new ApiError("Сначала обновите backend: сохранение входа ещё не подключено.", 503, "WEB_SESSION_UNAVAILABLE");
     if (newIdentity) sessionEpoch++;
     access = payload.access_token || payload.token || "";
     refresh = payload.refresh_token || "";
-    if(sessionStorageKey && storage)storage.setItem(sessionStorageKey,JSON.stringify({token:access,refresh_token:refresh}));
+    if(sessionStorageKey && storage){
+      if(webClient)storage.removeItem(sessionStorageKey);
+      else storage.setItem(sessionStorageKey,JSON.stringify({token:access,refresh_token:refresh}));
+    }
     return payload;
   }
   function clear() {
@@ -150,12 +155,31 @@ export function createApiClient({
   }
   return {
     request: send,
+    async restore() {
+      const epoch = sessionEpoch;
+      try {
+        const payload = await send('/auth/web/session', {
+          method: 'POST', auth: false, body: refresh ? {refresh_token: refresh} : {},
+        }, false);
+        if(epoch !== sessionEpoch) return false;
+        setSession(payload, false);
+        return true;
+      } catch(error) {
+        if(epoch === sessionEpoch && error.status === 401) { clear(); return false; }
+        throw error;
+      }
+    },
     setSession,
     clear,
     get authenticated() {
       return Boolean(access);
     },
     async logout() {
+      if(webClient){
+        await send('/auth/web/logout', {method:'POST',auth:false,body:{}}, false);
+        clear();
+        return;
+      }
       try {
         if (access)
           await send("/auth/logout", {
