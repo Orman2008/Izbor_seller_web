@@ -26,7 +26,7 @@
     if (modulePromise) return modulePromise;
     for (const path of ['shared/design.css','shared/appearance.css']) stylesheet(path);
     modulePromise = (async () => {
-      return import('./web-app.js?v=20261021-final-refinement');
+      return import('./web-app.js?v=20261022-motion');
     })().catch(error => { modulePromise = null; throw error; });
     return modulePromise;
   }

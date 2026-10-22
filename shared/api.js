@@ -217,26 +217,28 @@ export function withoutMediaCapabilities(value) {
 export function clearPrivateMediaImages(root = globalThis.document) {
   root?.querySelectorAll('img[src*="media_token="],img[src*="private_media=1"]').forEach(image => image.removeAttribute("src"));
 }
-export function installPrivateMediaImages({request, baseUrl, root = globalThis.document}) {
+export function installPrivateMediaImages({request, baseUrl, root = globalThis.document, onUnavailable = () => {}}) {
   const attempts = new WeakMap();
   const loaded = event => { if(event.target?.tagName === 'IMG') attempts.delete(event.target); };
   const listener = async event => {
     const image = event.target;
     if(image?.tagName !== "IMG") return;
     let url;
-    try { url = new URL(image.src); } catch { return; }
-    if(url.origin !== new URL(baseUrl).origin || !/^\/media\/\d+(?:\/thumbnail)?$/.test(url.pathname)) return;
+    try { url = new URL(image.src); } catch { onUnavailable(image); return; }
+    if(url.origin !== new URL(baseUrl).origin || !/^\/media\/\d+(?:\/thumbnail)?$/.test(url.pathname)) { onUnavailable(image); return; }
     const original = image.src;
-    if(attempts.get(image) === original) return;
+    if(attempts.get(image) === original) { onUnavailable(image); return; }
     attempts.set(image,original);
     image.referrerPolicy = "no-referrer";
     try {
       const payload = await request(url.pathname.replace(/\/thumbnail$/, "") + "/access");
       if(!image.isConnected || image.src !== original) return;
       const renewed = mediaUrl(payload.url,baseUrl,url.pathname.endsWith('/thumbnail'));
-      if(!renewed) return;
+      if(!renewed || renewed === original) { onUnavailable(image); return; }
       attempts.set(image,renewed); image.src = renewed;
-    } catch { /* Existing error presentation remains; no credentials or URL are logged. */ }
+    } catch {
+      if(image.isConnected && image.src === original) onUnavailable(image);
+    }
   };
   root?.addEventListener("error",listener,true);
   root?.addEventListener("load",loaded,true);

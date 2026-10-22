@@ -245,3 +245,21 @@ html[data-brand-product] .button:not(:disabled):active{transform:scale(.98)}
 @media(max-width:767px){html[data-brand-product=buyer] .mobile-nav .nav-button{display:grid;height:58px;min-height:58px;grid-template-rows:26px 14px;align-content:center;justify-items:center;gap:4px;box-sizing:border-box}}
 
 .workspace-backdrop{display:none}@media(max-width:767px){.workspace-backdrop{display:block;position:fixed;inset:0;z-index:29;background:#07152566;border:0;backdrop-filter:blur(2px)}html[data-brand-product=seller] #sellerDashboardMount .web-sidebar.workspace-open{box-shadow:8px 0 36px #07152522}}
+
+/* IzborMotion: same timing and restrained press feedback as Flutter. */
+html[data-controls-motion=true]{--motion-fast:130ms;--motion-state:160ms;--motion-navigation:240ms;--motion-ease:cubic-bezier(.215,.61,.355,1)}
+html[data-controls-motion=true] :is(button,a.button,a.site-button,a[data-nav],a.category-card,summary){transition:scale var(--motion-fast) var(--motion-ease),background-color var(--motion-state),color var(--motion-state),border-color var(--motion-state),box-shadow var(--motion-state);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html[data-controls-motion=true] :is(button,a.button,a.site-button,a[data-nav],a.category-card,summary):active{transform:none}
+html[data-controls-motion=true] :is(button,a.button,a.site-button,a[data-nav],a.category-card,summary)[data-pressed=true]{scale:.98}
+html[data-controls-motion=true] :is(.icon-button,.favorite-button,.favorite-btn,[data-favorite])[data-pressed=true]{scale:.95}
+html[data-controls-motion=true] :is(:disabled,[aria-disabled=true],[aria-busy=true]){scale:1;cursor:default}
+html[data-controls-motion=true] :is(button,a.button,a.site-button,a[data-nav],summary):focus-visible{outline:3px solid var(--primary-readable,var(--primary,#0874ab));outline-offset:3px}
+@media(hover:hover) and (pointer:fine){html[data-controls-motion=true] :is(.button,.site-button):not(:disabled):not([aria-busy=true]):hover{box-shadow:0 3px 10px #0874ab20}html[data-controls-motion=true] :is(.list-card,.chip,a[data-nav]):not(:disabled):hover{background-color:var(--primary-soft,#e9f5fb)}}
+html[data-brand-product] .izbor-navigation-track{position:relative;isolation:isolate}
+html[data-brand-product] .izbor-navigation-track>:is(button,a){position:relative;z-index:1}
+html[data-brand-product] .izbor-navigation-track .nav-motion-indicator{position:absolute;top:0;left:0;z-index:0;border-radius:16px;background:var(--primary-soft,#e9f5fb);pointer-events:none;transition:none}
+html[data-brand-product] .izbor-navigation-track .nav-motion-indicator.motion-ready{transition:transform var(--motion-navigation) var(--motion-ease),width var(--motion-navigation) var(--motion-ease),height var(--motion-navigation) var(--motion-ease)}
+html[data-brand-product] .izbor-navigation-track>:is(button,a).active{background:transparent!important}
+html[data-brand-product=buyer] .mobile-nav.izbor-navigation-track .nav-button.active svg{background:transparent;box-shadow:none}
+html[data-brand-product] .izbor-navigation-track :is(svg,span:not(.nav-motion-indicator)){transition:color var(--motion-navigation) var(--motion-ease)}
+@media(prefers-reduced-motion:reduce){html[data-controls-motion=true] :is(button,a.button,a.site-button,a[data-nav],a.category-card,summary){scale:1!important;transition:none!important}html[data-brand-product] .nav-motion-indicator{transition:none!important}}

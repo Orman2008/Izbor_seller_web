@@ -1198,6 +1198,7 @@ $(".skip-link").onclick = (event) => {
   $("#view").focus();
 };
 mountNavigationMotion(document.querySelector(".web-sidebar nav"));
+mountNavigationMotion(document.querySelector(".seller-mobile-tabs"),{compact:true});
 window.addEventListener("hashchange", () =>
   { const next = location.hash.slice(1); if (nav.some(([name]) => name === next)) go(next); },
 );
