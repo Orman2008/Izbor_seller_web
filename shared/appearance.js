@@ -1,4 +1,6 @@
 import { dialog, esc } from "./ui.js";
+import { translateUi } from "./ui-copy.js";
+const tr = value => translateUi(value, document.documentElement.lang || "ru");
 export const appearanceModes = {
   system: "Системная",
   light: "Светлая",
@@ -17,11 +19,12 @@ export function applyAppearance(mode = "system", persist = false) {
     } catch {}
   }
   for (const label of document.querySelectorAll("[data-appearance-value]"))
-    label.textContent = appearanceModes[mode];
+    label.textContent = tr(appearanceModes[mode]);
 }
 export function appearanceSettings() {
-  return `<section class="card section"><h2>Настройки</h2><h3>Оформление</h3><button type="button" class="button soft" data-appearance-open>Тема · <span data-appearance-value>${esc(appearanceModes[document.documentElement.dataset.themeMode] || appearanceModes.system)}</span></button></section>`;
+  return `<section class="card section appearance-settings"><h2>${esc(tr("Настройки"))}</h2><h3>${esc(tr("Оформление"))}</h3><button type="button" class="button soft" data-appearance-open>${esc(tr("Тема"))} · <span data-appearance-value>${esc(tr(appearanceModes[document.documentElement.dataset.themeMode] || appearanceModes.system))}</span></button></section>`;
 }
+document.addEventListener("izbor:language-changed", () => applyAppearance(document.documentElement.dataset.themeMode));
 system.addEventListener("change", () =>
   applyAppearance(document.documentElement.dataset.themeMode),
 );
@@ -32,15 +35,15 @@ document.addEventListener("click", (event) => {
   if (!event.target.closest("[data-appearance-open]")) return;
   const mode = document.documentElement.dataset.themeMode || "system";
   const modal = dialog(
-    `<fieldset class="form"><legend>Тема</legend>${Object.entries(
+    `<fieldset class="form"><legend>${esc(tr("Тема"))}</legend>${Object.entries(
       appearanceModes,
     )
       .map(
         ([key, title]) =>
-          `<label><input type="radio" name="appearance" value="${key}" ${key === mode ? "checked" : ""}> ${title}${key === "system" ? " — Использовать тему устройства" : ""}</label>`,
+          `<label><input type="radio" name="appearance" value="${key}" ${key === mode ? "checked" : ""}> ${esc(tr(title))}</label>`,
       )
       .join("")}</fieldset>`,
-    "Оформление",
+    tr("Оформление"),
   );
   modal.addEventListener("change", (event) => {
     if (event.target.name === "appearance")

@@ -26,7 +26,7 @@
     if (modulePromise) return modulePromise;
     for (const path of ['shared/design.css','shared/appearance.css']) stylesheet(path);
     modulePromise = (async () => {
-      return import('./web-app.js');
+      return import('./web-app.js?v=20261021-final-refinement');
     })().catch(error => { modulePromise = null; throw error; });
     return modulePromise;
   }
@@ -62,5 +62,5 @@
   }
   if (sessionStorage.getItem('izbor.telegram.pending.seller') || sessionStorage.getItem('izbor.seller.web.session')) begin('login');
   // A dashboard deep link still starts with an explicit authentication gate.
-  if (['dashboard','products','catalog','imports','chats','reviews','analytics','plan','store','profile','team','qr','clients','branches'].includes(location.hash.slice(1))) begin('login');
+  if (['dashboard','products','catalog','imports','chats','reviews','analytics','plan','store','profile','team','qr','clients','branches','ai','warranties','discounts','loyalty','promotion','invitations','pos','photo-navigation','compliance','ranking'].includes(location.hash.slice(1))) begin('login');
 })();

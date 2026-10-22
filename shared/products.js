@@ -102,3 +102,19 @@ export function productSpecifications(product, language = "ru") {
   const keys = Object.keys(attributeLabels);
   return Object.entries(values).map(([key, value]) => [translatedAttributeLabels[language]?.[keys.indexOf(key)] || attributeLabels[key] || key, value]);
 }
+
+// One presentation contract for list and detail; values still come from API.
+export function productOfferPricing(product) {
+  const rawPrice = Number(product.price);
+  const price = Number.isFinite(rawPrice) && rawPrice >= 0 ? rawPrice : 0;
+  const rawDiscount = Number(product.discount_percent || 0);
+  const discount = rawDiscount >= 0 && rawDiscount < 100 ? rawDiscount : 0;
+  const salePrice = price * (1 - discount / 100);
+  const previous = Number(product.old_price);
+  const oldPrice = discount > 0 ? price : Number.isFinite(previous) && previous > price ? previous : 0;
+  return {price, discount, salePrice, oldPrice};
+}
+export function productAvailability(product) {
+  return product.stock_status === 'UNCONFIRMED' ? 'unconfirmed' :
+    [true, 1, 'true'].includes(product.in_stock) ? 'inStock' : 'outOfStock';
+}

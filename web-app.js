@@ -1,3 +1,4 @@
+import {createSellerWorkspace,workspaceRoutes,qrTools,splitConnections} from './shared/seller-workspace.js';
 import { attributeEditorMarkup, mountAttributeEditor } from "./shared/product-attributes-editor.js";
 import {pricingPreview,bindPricing} from './shared/pricing.js';
 import {posPage,bindPos} from './seller-pos.js';
@@ -60,13 +61,16 @@ let user = null,
 let allBranches=false,branchPageData=null;
 const rootId=()=>Number(shop?.root_shop_id||shop?.business_id||shop?.id);
 const sellerSymbols={dashboard:'<path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/>',products:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',qr:'<path d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6M9 9h6v6H9z"/>',broadcasts:'<path d="m4 10 15-6v16L4 14Z"/><path d="M7 15v5h4l-2-4"/>',clients:'<circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0m0-17a4 4 0 0 1 0 8m3 3a7 7 0 0 1 3 6"/>',ai:'<path d="m12 3 2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6Z"/>',profile:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',chats:'<path d="M21 15H8l-5 5V4h18Z"/>',analytics:'<path d="M4 20V10m8 10V4m8 16v-8M2 22h20"/>',store:'<path d="M3 10h18l-2-7H5Z"/><path d="M4 10v11h16V10M9 21v-7h6v7"/>'};
+Object.assign(sellerSymbols,{
+ warranties:'<path d="m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6Z"/><path d="m8 12 3 3 5-6"/>',discounts:'<path d="M20 13 11 22 2 13V3h10l8 8Z"/><circle cx="7" cy="8" r="1"/>',loyalty:'<path d="M3 7h18v14H3ZM2 3h20v4H2ZM12 3v18"/><path d="M12 3C4-4 3 7 12 3c9 4 8-7 0 0"/>',promotion:'<path d="m3 10 17-6v16L3 14ZM7 15v6h4l-2-5"/>',invitations:'<circle cx="9" cy="7" r="4"/><path d="M2 21v-2a7 7 0 0 1 14 0v2m3-13v8m-4-4h8"/>',reviews:'<path d="m12 2 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z"/>',plan:'<rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 10h18M7 15h5"/>',team:'<circle cx="8" cy="8" r="4"/><circle cx="18" cy="9" r="3"/><path d="M1 21v-2a7 7 0 0 1 14 0v2m2-7a6 6 0 0 1 6 7"/>',imports:'<path d="M12 3v12m-5-5 5 5 5-5M3 15v6h18v-6"/>',branches:'<path d="M12 3v8M4 21v-5h16v5M4 16v-5h16v5"/><circle cx="12" cy="3" r="2"/>'});
 function sellerIcon(name){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${sellerSymbols[name]||sellerSymbols.products}</svg>`;}
 const nav = [
   ["dashboard", "Главная"],
   ["products", "Товары"],
   ["catalog", "Каталог Izbor Seller"],
-  ["imports", "Импорт и API"],
-  ["pos", "POS интеграции"],
+  ["imports", "Системы учёта"],
+  ["pos", "Синхронизация и сопоставление"],
+  ...workspaceRoutes,
   ["chats", "Чаты"],
   ["reviews", "Отзывы"],
   ["broadcasts", "Рассылка"],
@@ -83,7 +87,7 @@ const nav = [
   ["ranking", "Как формируется выдача"],
 ];
 $("#app").outerHTML =
-  `<a class="skip-link" href="#view">К содержимому</a><div class="web-shell"><aside class="web-sidebar"><a class="web-brand" href="#dashboard"><img src="assets/izbor-icon-192.png?v=20261020" alt="Izbor Seller"><span>Izbor Seller<br><small class="muted">Бизнес-центр</small></span></a><nav aria-label="Кабинет продавца">${nav.map(([key, title]) => `<a href="#${key}" data-nav="${key}"><span class="seller-nav-icon">${sellerIcon(key)}</span><span>${title}</span></a>`).join("")}</nav><div class="sidebar-footer">${supportLinks(base, "seller")}</div></aside><main class="web-main"><header class="web-header"><span id="storeName">Кабинет продавца</span><div id="branchContext"></div><label class="site-language"><span class="sr-only">Язык</span><select data-site-language aria-label="Язык"><option value="ru">RU</option><option value="uz">UZ</option><option value="en">EN</option></select></label><div class="actions">${button("Войти", "login")}${button("Выйти", "logout")}</div></header><section id="view" class="web-content" aria-live="polite"></section></main><nav class="seller-mobile-tabs" aria-label="Основные разделы">${[["dashboard","Главная"],["products","Товары"],["qr","QR"],["clients","Клиенты"],["profile","Профиль"]].map(([key,title])=>`<a href="#${key}" data-nav="${key}">${sellerIcon(key)}<span>${title}</span></a>`).join("")}</nav></div>`;
+  `<a class="skip-link" href="#view">К содержимому</a><div class="web-shell"><aside class="web-sidebar" id="workspaceSidebar"><a class="web-brand" href="#dashboard"><img src="assets/izbor-icon-192.png?v=20261020" alt="Izbor Seller"><span>Izbor Seller<br><small class="muted">Бизнес-центр</small></span></a><nav aria-label="Кабинет продавца">${nav.filter(([key])=>key!=="pos").map(([key, title]) => `<a href="#${key}" data-nav="${key}"><span class="seller-nav-icon">${sellerIcon(key)}</span><span>${title}</span></a>`).join("")}</nav><div class="sidebar-footer">${supportLinks(base, "seller")}</div></aside><button type="button" class="workspace-backdrop" data-workspace-dismiss aria-label="Закрыть меню" hidden></button><main class="web-main"><header class="web-header"><button type="button" class="button soft workspace-menu-button" data-workspace-menu aria-expanded="false" aria-controls="workspaceSidebar">☰ <span>Все разделы</span></button><span id="storeName">Кабинет продавца</span><div id="branchContext"></div><label class="site-language"><span class="sr-only">Язык</span><select data-site-language aria-label="Язык"><option value="ru">RU</option><option value="uz">UZ</option><option value="en">EN</option></select></label><div class="actions">${button("Войти", "login")}${button("Выйти", "logout")}</div></header><section id="view" class="web-content" aria-live="polite"></section></main><nav class="seller-mobile-tabs" aria-label="Основные разделы">${[["dashboard","Главная"],["products","Товары"],["qr","QR"],["clients","Клиенты"],["profile","Профиль"]].map(([key,title])=>`<a href="#${key}" data-nav="${key}">${sellerIcon(key)}<span>${title}</span></a>`).join("")}</nav></div>`;
 const image = (url, title = "Фото товара") => {
   const src = mediaUrl(url, base, true);
   return src
@@ -107,6 +111,7 @@ function login(mode) {
       window.history.replaceState(null, "", location.pathname + location.search + "#" + route);
       try {
         if (!shop) {
+    $("#view").removeAttribute("aria-busy");
           const me = await api.request("/users/me");
           user = me.user;
           shop = me.shop;
@@ -159,7 +164,7 @@ function timelineChart(points) {
 function quickActions(){
   const owner=shop.position==='owner';
   const can=permission=>owner||shop.permissions?.[permission]===true;
-  return `<section class="section app-quick-section"><h2>Быстрые действия</h2><div class="app-quick-actions">${can('products')?`<button data-action="new-product">${sellerIcon('products')}<span>Добавить</span></button>`:''}${can('qr')?`<a href="#qr">${sellerIcon('qr')}<span>QR</span></a>`:''}${owner?`<a href="#broadcasts">${sellerIcon('broadcasts')}<span>Промо</span></a>`:''}${can('products')&&can('ai')?`<button data-action="new-product" data-open-ai>${sellerIcon('ai')}<span>AI</span></button>`:''}</div></section>`;
+  return `<section class="section app-quick-section"><h2>Быстрые действия</h2><div class="app-quick-actions">${can('products')?`<button data-action="new-product">${sellerIcon('products')}<span>Добавить</span></button>`:''}${can('qr')?`<a href="#qr">${sellerIcon('qr')}<span>QR</span></a>`:''}${owner?`<a href="#broadcasts">${sellerIcon('broadcasts')}<span>Промо</span></a>`:''}${can('products')&&can('ai')?`<a href="#ai">${sellerIcon('ai')}<span>AI</span></a>`:''}</div></section>`;
 }
 function sellerHome(data,plan,products){
   const overview=data.overview||{}, detailed=Number(data.access?.priority)>0;
@@ -201,7 +206,7 @@ function productTable() {
     [
       "Наличие",
       (p) =>
-        `<span class="status">${esc(p.stock_status || (p.in_stock ? "AVAILABLE" : "OUT_OF_STOCK"))}</span>`,
+        `<span class="status">${esc(({AVAILABLE:"В наличии",OUT_OF_STOCK:"Нет в наличии",UNCONFIRMED:"Наличие не подтверждено"})[p.stock_status || (p.in_stock ? "AVAILABLE" : "OUT_OF_STOCK")]||p.stock_status)}</span>`,
     ],
     [
       "Действия",
@@ -404,18 +409,20 @@ async function imports() {
     api.request(`/api/stores/${shop.id}/integrations`),
   ]);
   integrationProviders = rows(providers);
-  return `${heading("Импорт и подключения", "Действующие интеграции из Seller App")}<div class="card"><h2>Excel / CSV</h2><form id="importFile" class="form">${field("Файл", "file", "", "file", 'required accept=".csv,.xlsx,.xls"')}<button class="button">Проверить и посмотреть</button></form><div id="importPreview"></div></div><section class="section"><h2>Интеграции</h2>${table(
-    rows(integrations),
+  const connectionGroups=splitConnections(rows(integrations));
+  const connectionSections=[['connected','Подключённые'],['attention','Требуют настройки'],['disconnected','Не подключённые']];
+  return `${heading("Системы учёта", "Импорт товаров, цен и остатков")}<div class="card"><h2>Excel / CSV</h2><form id="importFile" class="form">${field("Файл", "file", "", "file", 'required accept=".csv,.xlsx,.xls"')}<button class="button">Проверить и посмотреть</button></form><div id="importPreview"></div></div>${connectionSections.map(([groupKey,groupTitle])=>connectionGroups[groupKey].length?`<section class="section"><h2>${esc(groupTitle)}</h2>${table(
+    connectionGroups[groupKey],
     [
       ["Провайдер", (i) => esc(i.provider_name || i.provider)],
-      ["Статус", (i) => esc(i.status)],
+      ["Статус", (i) => esc(({connected:'Подключено',syncing:'Синхронизация',degraded:'Требует внимания',disconnected:'Отключено',configuring:'Настройка',error:'Ошибка'})[i.status]||i.status)],
       [
         "Действия",
         (i) =>
-          `<div class="actions">${["test", "connect", "sync", "status", "health", "errors", "sync-history", "locations"].map((action) => button(action, "integration", `data-id="${esc(i.id)}" data-operation="${action}"`)).join("")}${button("Отключить", "disconnect", `data-id="${esc(i.id)}"`)}</div>`,
+          `<div class="actions">${["test", "connect", "sync", "status", "health", "errors", "sync-history", "locations"].map((action) => button(({test:"Проверить",connect:"Подключить",sync:"Синхронизировать",status:"Состояние",health:"Диагностика",errors:"Ошибки","sync-history":"История",locations:"Точки продаж"})[action], "integration", `data-id="${esc(i.id)}" data-operation="${action}"`)).join("")}${button("Отключить", "disconnect", `data-id="${esc(i.id)}"`)}</div>`,
       ],
     ],
-  )}</section><section class="card"><h2>Подключить API</h2><form id="integrationCreate" class="form">${select(
+  )}</section>`:'').join('')}${!connectionGroups.connected.length?'<p class="notice">Подключённых систем пока нет.</p>':''}<p><a class="button soft" href="#pos">Синхронизация и сопоставление →</a></p><section class="card"><h2>Подключить API</h2><form id="integrationCreate" class="form">${select(
     "Провайдер",
     "provider",
     rows(providers)
@@ -475,7 +482,7 @@ async function team() {
   if(shop.position==='owner'){
     const setting=await api.request(endpoint('/staff-permissions'));
     const labels={products_view:'Просмотр товаров',products:'Изменение предложений',profile:'Профиль филиала',staff:'Управление командой',chats:'Чаты',analytics:'Аналитика',reviews:'Отзывы',qr:'QR',broadcasts:'Рассылки',sales:'Продажи',ai:'AI'};
-    permissionForm='<section class="card"><h2>Права этого филиала</h2><form id="branchPermissions" class="form">'+['seller','manager'].map(role=>'<fieldset class="permission-group"><legend>'+esc(role==='manager'?'Менеджер':'Сотрудник')+'</legend><div class="permission-options">'+Object.entries(labels).map(([key,label])=>'<label><input type="checkbox" data-permission-role="'+role+'" data-permission="'+key+'" '+(setting.permissions?.[role]?.[key]?'checked':'')+'>'+esc(label)+'</label>').join('')+'</div></fieldset>').join('')+'<button class="button">Сохранить права</button></form></section>';
+    permissionForm='<p><a class="button" href="#invitations">Пригласить сотрудника</a></p><section class="card"><h2>Права этого филиала</h2><form id="branchPermissions" class="form">'+['seller','manager'].map(role=>'<fieldset class="permission-group"><legend>'+esc(role==='manager'?'Менеджер':'Сотрудник')+'</legend><div class="permission-options">'+Object.entries(labels).map(([key,label])=>'<label><input type="checkbox" data-permission-role="'+role+'" data-permission="'+key+'" '+(setting.permissions?.[role]?.[key]?'checked':'')+'>'+esc(label)+'</label>').join('')+'</div></fieldset>').join('')+'<button class="button">Сохранить права</button></form></section>';
   }
   return `${permissionForm}${heading("Команда", "Права проверяются сервером для выбранного филиала")}<p class="notice">Код магазина: ${esc(shop.store_code || "Откройте профиль магазина в приложении")}</p>${table(
     rows(members, "members"),
@@ -507,7 +514,7 @@ async function team() {
 }
 async function broadcasts() {
   const data = await api.request(endpoint("/broadcasts"));
-  return `${heading("Рассылка", `QR-аудитория: ${Number(data.audience_count) || 0}`)}<form id="broadcastForm" class="form card">${textarea("Текст уведомления", "text")}${field("Приложить фото", "image", "", "file", 'accept="image/jpeg,image/png,image/webp"')}<button class="button">Отправить всем</button></form><section class="section"><h2>История рассылок</h2><div class="store-grid">${
+  return `${heading("Рассылка", `Подписчиков: ${Number(data.audience_count) || 0}`)}<form id="broadcastForm" class="form card">${textarea("Текст уведомления", "text")}${field("Приложить фото", "image", "", "file", 'accept="image/jpeg,image/png,image/webp"')}<button class="button">Отправить всем</button></form><section class="section"><h2>История рассылок</h2><div class="store-grid">${
     rows(data, "broadcasts")
       .map(
         (b) =>
@@ -519,7 +526,12 @@ async function broadcasts() {
 async function go(next = route) {
   if (!nav.some(([name]) => name === next)) next = "dashboard";
   route = next;
+  const backdrop=document.querySelector('[data-workspace-dismiss]');if(backdrop)backdrop.hidden=true;
+  document.querySelector('.web-sidebar')?.classList.remove('workspace-open');
+  document.querySelector('[data-workspace-menu]')?.setAttribute('aria-expanded','false');
   const version = ++generation;
+  document.querySelectorAll('dialog[open]').forEach(modal=>modal.close());
+  $('#view').setAttribute('aria-busy','true');
   const disposePrevious = cleanup;
   cleanup = () => {};
   disposePrevious();
@@ -530,17 +542,19 @@ async function go(next = route) {
   $("[data-action=login]").hidden = api.authenticated;
   $("[data-action=logout]").hidden = !api.authenticated;
   if (!api.authenticated) {
+    $("#view").removeAttribute("aria-busy");
     $("#view").innerHTML =
       `${heading("Управляйте магазином в Izbor Seller", "Тот же аккаунт и каталог, что в Seller App")}<div class="card"><h2>Вход по номеру телефона</h2><p>Код в Telegram или SMS. Владелец создаёт магазин, сотрудник присоединяется по коду магазина.</p>${button("Войти / зарегистрироваться", "login")}</div>`;
     return;
   }
   if (!shop) {
+    $("#view").removeAttribute("aria-busy");
     $("#view").innerHTML = `${empty("Нет доступного магазина")}${button("Продолжить настройку или присоединиться", "login")}`;
     return;
   }
   $("#storeName").textContent=shop.business_name||shop.name;
   const owner=shop.position==='owner';
-  const routePermission={imports:'owner',pos:'owner',branches:'owner',catalog:'products',products:'products_view',chats:'chats',analytics:'analytics',store:'profile',team:'staff',ai:'ai',qr:'qr',clients:'qr'};
+  const routePermission={reviews:'reviews',broadcasts:'broadcasts',warranties:'qr',discounts:'qr',loyalty:'owner',promotion:'owner',invitations:'owner',imports:'owner',pos:'owner',branches:'owner',catalog:'products',products:'products_view',chats:'chats',analytics:'analytics',store:'profile',team:'staff',ai:'ai',qr:'qr',clients:'qr'};
   document.querySelectorAll('[data-nav]').forEach(link=>{
     const permission=routePermission[link.dataset.nav];
     link.hidden=!owner&&shop.permissions&&permission&&shop.permissions[permission]!==true;
@@ -576,8 +590,8 @@ async function go(next = route) {
     const permission=routePermission[route];
     if(!await ensureLegalAcceptance(api.request)){$('#view').innerHTML='<section class="card"><h2>Необходимо принять новые версии документов</h2>'+button('Открыть документы','retry')+'</section>';return;}
     if(!owner&&shop.permissions&&permission&&shop.permissions[permission]!==true)throw new Error('Владелец не разрешил этот раздел для вашего филиала.');
-    let html = "";
-    if(route==='plan')bindPricing(document.getElementById('view'));
+    let html = "",workspace=null;
+    
     if(route==='compliance'){
       if(!owner)throw new Error('Проверку продавца заполняет владелец бизнеса.');
       if(allBranches)html='<p class="notice">Выберите филиал для проверки его лицензии.</p>';
@@ -596,7 +610,8 @@ async function go(next = route) {
       else html+=table(items,[['Филиал',p=>esc(p.branch_name)+' · '+esc(p.branch_code)],['Запись',p=>esc(p.name||p.product_name||p.text||p.id)],['Статус / роль',p=>esc(p.status||p.role||'')]]);
       html+='<div class="actions">'+(page?button('Назад','previous'):'')+(data.has_more?button('Далее','next'):'')+'</div>';
     }
-    else if(allBranches&&['catalog','store','photo-navigation','broadcasts','clients'].includes(route)) html=heading(nav.find(n=>n[0]===route)?.[1]||'Магазин')+'<p class="notice">Выберите конкретный филиал в поле «Филиал» для этой операции.</p>';
+    else if(allBranches&&['catalog','store','photo-navigation','broadcasts','clients',...workspaceRoutes.map(([name])=>name)].includes(route)) html=heading(nav.find(n=>n[0]===route)?.[1]||'Магазин')+'<p class="notice">Выберите конкретный филиал в поле «Филиал» для этой операции.</p>';
+    else if(workspaceRoutes.some(([key])=>key===route)){workspace=createSellerWorkspace({api,shop,base,reload:()=>go(route)});html=await workspace.render(route);}
     else if (route === "products") html = await loadProducts();
     else if (route === "catalog") html = await catalog();
     else if (route === "imports") html = await imports();
@@ -726,7 +741,7 @@ async function go(next = route) {
       const data = await api.request(endpoint("/qr/customers"));
       html =
         heading("QR магазина", "Каталог и подписка без покупки") +
-        `<section class="card"><h2>${esc(shop.name)}</h2><canvas id="storeQr"></canvas><p><a href="https://izbor.uz/shop/?id=${Number(shop.id)}" target="_blank" rel="noopener">https://izbor.uz/shop/?id=${Number(shop.id)}</a></p><p>Покажите QR покупателю. Рассылки не требуют оплаты или сканирования продавцом.</p></section><form id="qrScan" class="form card"><h2>Погасить гарантию</h2>${textarea("QR гарантии (текст кода)", "qr_token")}${button("Сканировать QR камерой", "barcode", 'data-format="qr"')}<p>Гарантия будет использована один раз и станет недействительной.</p><button class="button">Погасить гарантию</button></form>` +
+        `${qrTools(shop)}<section class="card store-qr-card"><h2>${esc(shop.name)}</h2><canvas id="storeQr"></canvas><p><a href="https://izbor.uz/shop/?id=${Number(shop.id)}" target="_blank" rel="noopener">https://izbor.uz/shop/?id=${Number(shop.id)}</a></p><p>Покажите QR покупателю. Рассылки не требуют оплаты или сканирования продавцом.</p></section><form id="qrScan" class="form card"><h2>Погасить гарантию</h2>${textarea("QR гарантии (текст кода)", "qr_token")}${button("Сканировать QR камерой", "barcode", 'data-format="qr"')}<p>Гарантия будет использована один раз и станет недействительной.</p><button class="button">Погасить гарантию</button></form>` +
         table(rows(data, "customers"), [
           ["Подписчик", (p) => esc(p.name || p.buyer_name)],
           ["Гарантии", (p) => esc(p.warranties_count || 0)],
@@ -739,6 +754,9 @@ async function go(next = route) {
     else html = empty("Страница не найдена");
     if (version !== generation) return;
     $("#view").innerHTML = html;
+    $("#view").removeAttribute("aria-busy");
+    if(workspace)cleanup=workspace.bind($("#view"));
+    if(route==='plan')bindPricing($("#view"));
     if(route==='qr' && window.QRCode) await window.QRCode.toCanvas(document.querySelector('#storeQr'),`https://izbor.uz/shop/?id=${Number(shop.id)}`,{width:250,margin:4});
     if(route==='pos'&&!allBranches)bindPos(api,shop,()=>go('pos'));
     if(route==='compliance')bindSellerCompliance(api.request,endpoint('/compliance'),()=>go('compliance'));
@@ -761,7 +779,7 @@ async function go(next = route) {
       if (version !== generation) dispose();
       else cleanup = dispose;
     }
-    if(owner)$("#view").insertAdjacentHTML("beforeend",'<p><a href="#branches">Управление филиалами →</a></p>');
+
     if(route==='branches')bindBranches($("#view"),{api,root:rootId(),branches:branchPageData.branches,reload:async()=>{shops=rows(await api.request('/users/me/shops'));await go();}});
     if (route === "store" && !allBranches) {
       cleanup = locationPicker(
@@ -920,10 +938,14 @@ async function go(next = route) {
       await go();
     });
   } catch (error) {
-    if (version === generation) $("#view").innerHTML = errorView(error);
+    if (version === generation){$("#view").removeAttribute("aria-busy");$("#view").innerHTML = errorView(error);}
   }
 }
+document.addEventListener('keydown',event=>{if(event.key==='Escape'){const backdrop=document.querySelector('[data-workspace-dismiss]');if(backdrop)backdrop.hidden=true;document.querySelector('.web-sidebar')?.classList.remove('workspace-open');const menu=document.querySelector('[data-workspace-menu]');if(menu?.getAttribute('aria-expanded')==='true'){menu.setAttribute('aria-expanded','false');menu.focus();}}});
 document.addEventListener("click", async (event) => {
+  if(event.target.closest('[data-workspace-menu]')){const sidebar=document.querySelector('.web-sidebar'),menu=document.querySelector('[data-workspace-menu]');const open=sidebar.classList.toggle('workspace-open');menu.setAttribute('aria-expanded',String(open));document.querySelector('[data-workspace-dismiss]').hidden=!open;if(open)sidebar.querySelector('a')?.focus();return;}
+    if(event.target.closest('[data-workspace-dismiss]')){document.querySelector('.web-sidebar').classList.remove('workspace-open');document.querySelector('[data-workspace-dismiss]').hidden=true;const menu=document.querySelector('[data-workspace-menu]');menu.setAttribute('aria-expanded','false');menu.focus();return;}
+    const navLink=event.target.closest('[data-nav]');if(navLink){document.querySelector('.web-sidebar').classList.remove('workspace-open');document.querySelector('[data-workspace-dismiss]').hidden=true;document.querySelector('[data-workspace-menu]').setAttribute('aria-expanded','false');if(location.hash==='#'+navLink.dataset.nav){event.preventDefault();await go(navLink.dataset.nav);}return;}
   const target = event.target.closest("[data-action]");
   if (!target) return;
   const action = target.dataset.action,

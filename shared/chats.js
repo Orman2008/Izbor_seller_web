@@ -1,3 +1,4 @@
+import {interfaceText as tr} from './ui-copy.js';
 import {
   $,
   esc,
@@ -15,6 +16,7 @@ export async function mountChats(
   { api, baseUrl, role, initialChat, threadQuery },
 ) {
   const threads = rows(await api.request("/chats"+(threadQuery?"?"+new URLSearchParams(threadQuery):"")));
+  if(!container.isConnected)return()=>{};
   let active = initialChat,
     timer,
     disposed = false,
@@ -26,9 +28,9 @@ export async function mountChats(
     messages
       .map(
         (message) =>
-          `<div class="message ${message.sender === role ? "mine" : ""}">${message.media_url ? `<img src="${esc(mediaUrl(message.media_url, baseUrl))}" alt="Фото в сообщении" loading="lazy">` : ""}<div>${esc(message.text)}</div><time>${esc(message.time)}</time></div>`,
+          `<div class="message ${(message.sender||message.sender_type) === role ? "mine" : ""}">${message.media_url ? `<img src="${esc(mediaUrl(message.media_url, baseUrl))}" alt="${esc(tr('Фото в сообщении'))}" loading="lazy">` : ""}<div>${esc(message.text)}</div><time>${esc(message.time)}</time></div>`,
       )
-      .join("") || "<p>Начните разговор</p>";
+      .join("") || `<p>${esc(tr("Начните разговор"))}</p>`;
   async function refreshMessages(older = false) {
     if (disposed || !active || refreshing || !$(".messages", container)) return;
     refreshing = true;
@@ -87,18 +89,19 @@ export async function mountChats(
     currentMessages = messages;
     hasOlder = messages.length === 50;
     $("#chatRoom", container).innerHTML =
-      `<div class="actions"><button class="button soft" data-chat-refresh>Обновить</button><button class="button soft" data-block>${block.blocked_by_me ? "Разблокировать" : "Заблокировать"}</button></div><div class="messages" role="log" aria-label="Сообщения">${messages.map((message) => `<div class="message ${message.sender === role ? "mine" : ""}">${message.media_url ? `<img src="${esc(mediaUrl(message.media_url, baseUrl))}" alt="Фото в сообщении" loading="lazy">` : ""}<div>${esc(message.text)}</div><time>${esc(message.time)}</time></div>`).join("") || "<p>Начните разговор</p>"}</div><form class="form">${textarea("Сообщение", "text")}${field("Приложить фото", "image", "", "file", 'accept="image/jpeg,image/png,image/webp"')}<button class="button">Отправить</button><p class="form-error" role="alert"></p></form>`;
+      `<div class="actions"><button class="button soft" data-chat-refresh>${esc(tr("Обновить"))}</button><button class="button soft" data-block>${esc(tr(block.blocked_by_me ? "Разблокировать" : "Заблокировать"))}</button></div><div class="messages" role="log" aria-label="${esc(tr('Сообщения'))}">${messages.map((message) => `<div class="message ${(message.sender||message.sender_type) === role ? "mine" : ""}">${message.media_url ? `<img src="${esc(mediaUrl(message.media_url, baseUrl))}" alt="${esc(tr('Фото в сообщении'))}" loading="lazy">` : ""}<div>${esc(message.text)}</div><time>${esc(message.time)}</time></div>`).join("") || `<p>${esc(tr("Начните разговор"))}</p>`}</div><form class="form">${textarea("Сообщение", "text")}${field("Приложить фото", "image", "", "file", 'accept="image/jpeg,image/png,image/webp"')}<button class="button">${esc(tr("Отправить"))}</button><p class="form-error" role="alert"></p></form>`;
     $(".actions", container).insertAdjacentHTML(
       "beforeend",
-      '<button type="button" class="button soft" data-chat-older>Ранее</button><span data-chat-status role="status"></span>',
+      `<button type="button" class="button soft" data-chat-older>${esc(tr("Ранее"))}</button><span data-chat-status role="status"></span>`,
     );
     $("[data-chat-older]", container).hidden = !hasOlder;
     $("[data-chat-older]", container).onclick = () => refreshMessages(true);
     const log = $(".messages", container);
     log.scrollTop = log.scrollHeight;
     $("[data-chat-refresh]", container).onclick = () => refreshMessages();
-    $("[data-block]", container).onclick = () =>
-      api
+    $("[data-block]", container).onclick = async (event) => {
+      const control=event.currentTarget;if(control.disabled)return;control.disabled=true;
+      await api
         .request(`/chats/${id}/block`, {
           method: block.blocked_by_me ? "DELETE" : "PUT",
           body: {},
@@ -106,11 +109,10 @@ export async function mountChats(
         .then(() => {
           if (disposed || version !== generation) return;
           block.blocked_by_me = !block.blocked_by_me;
-          $("[data-block]", container).textContent = block.blocked_by_me
-            ? "Разблокировать"
-            : "Заблокировать";
+          $("[data-block]", container).textContent = tr(block.blocked_by_me ? "Разблокировать" : "Заблокировать");
         })
-        .catch((error) => toast(error.message));
+        .catch((error) => toast(tr(error.message))).finally(()=>{if(control.isConnected)control.disabled=false;});
+    };
     $("form", container).onsubmit = (event) => {
       event.preventDefault();
       submit(event.currentTarget, async (values) => {
