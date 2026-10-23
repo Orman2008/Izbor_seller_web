@@ -319,3 +319,47 @@ html[data-brand-product=buyer] .buyer-profile-wallet h2{font-size:20px;font-weig
 html[data-brand-product=buyer] .buyer-profile-wallet p{font-size:13px;line-height:1.6;margin:10px 0 14px;color:#fff}
 html[data-brand-product=buyer] .buyer-profile-wallet>div{display:flex;flex-wrap:wrap;gap:10px}
 html[data-brand-product=buyer] .buyer-profile-wallet button{display:flex;align-items:center;justify-content:center;gap:8px;flex:1 1 150px;min-height:44px;padding:10px 12px;border:1px solid #ffffff60;border-radius:14px;background:#ffffff20;color:#fff;cursor:pointer;font:inherit;font-size:13px;font-weight:700}
+
+/* Seller appearance: shared previews in the public page and account settings. */
+html[data-brand-product=seller] .appearance-options{min-width:0;border:0;padding:0;margin:0;color:var(--ink);scroll-margin-top:110px}
+html[data-brand-product=seller] .appearance-options legend{font-size:14px;font-weight:700;margin-bottom:12px}
+html[data-brand-product=seller] .appearance-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:100%;max-width:480px}
+html[data-brand-product=seller] .appearance-choice{position:relative;display:grid;gap:10px;min-width:0;padding:10px;border:1px solid var(--border);border-radius:16px;background:var(--surface);cursor:pointer;transition:border-color .16s,background .16s}
+html[data-brand-product=seller] .appearance-choice:hover{border-color:var(--primary)}
+html[data-brand-product=seller] .appearance-choice:has(input:checked){border-color:var(--primary);background:var(--primary-soft);box-shadow:inset 0 0 0 1px var(--primary)}
+html[data-brand-product=seller] .appearance-choice:focus-within{outline:3px solid var(--primary);outline-offset:3px}
+html[data-brand-product=seller] .appearance-choice input{position:absolute;opacity:0;width:1px;height:1px}
+html[data-brand-product=seller] .appearance-choice-title{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:650;line-height:1.5;overflow-wrap:anywhere}
+html[data-brand-product=seller] .appearance-choice-title:before{content:"";flex:none;width:12px;height:12px;border-radius:50%;border:1px solid var(--muted)}
+html[data-brand-product=seller] .appearance-choice input:checked~.appearance-choice-title:before{background:var(--control-primary);border-color:var(--control-primary);box-shadow:inset 0 0 0 3px var(--surface)}
+html[data-brand-product=seller] .appearance-preview{position:relative;display:block;height:70px;overflow:hidden;border-radius:9px;background:#f3f6fb;border:1px solid #ccd5e0}
+html[data-brand-product=seller] .appearance-preview i{position:absolute;inset:0 0 auto;height:13px;background:#fff;border-bottom:1px solid #ccd5e0}
+html[data-brand-product=seller] .appearance-preview b{position:absolute;left:9px;right:9px;top:24px;height:16px;border-radius:4px;background:#fff}
+html[data-brand-product=seller] .appearance-preview em{position:absolute;left:9px;bottom:9px;width:40%;height:10px;border-radius:4px;background:#0874ab}
+html[data-brand-product=seller] .appearance-preview.is-dark{background:#101620;border-color:#3b4b61}
+html[data-brand-product=seller] .appearance-preview.is-dark :is(i,b){background:#243245;border-color:#3b4b61}
+html[data-brand-product=seller] .appearance-preview.is-dark em{background:#70caff}
+html[data-brand-product=seller] .appearance-preview.is-system{background:linear-gradient(90deg,#f3f6fb 50%,#101620 50%)}
+html[data-brand-product=seller] .appearance-preview.is-system :is(i,b){background:linear-gradient(90deg,#fff 50%,#243245 50%)}
+html[data-brand-product=seller] .appearance-preview.is-system em{background:linear-gradient(90deg,#0874ab 50%,#70caff 50%);width:calc(100% - 18px)}
+/* Public Seller page: softer surfaces and consistent contrast in both themes. */
+html[data-brand-product=seller] #sellerLanding{--landing-tint:color-mix(in srgb,var(--primary) 5%,var(--surface))}
+html[data-brand-product=seller] #sellerLanding .site-header{background:var(--surface);box-shadow:0 4px 20px #10162005}
+html[data-brand-product=seller] #sellerLanding .site-hero{background:radial-gradient(ellipse at 90% 25%,var(--primary-soft),transparent 60%);border-radius:0 0 32px 32px}
+html[data-brand-product=seller] #sellerLanding :is(.value-card,.tool-card,.seller-workflow){background:var(--surface);border:1px solid var(--border);box-shadow:0 8px 28px #10162006}
+html[data-brand-product=seller] #sellerLanding :is(.site-lead,.value-card p,.tool-card p,.workflow-list p,.steps-grid p,.section-intro>p:not(.site-eyebrow)){color:var(--muted);line-height:1.75}
+html[data-brand-product=seller] #sellerLanding :is(.feature-icon,.workflow-list>li>span){background:var(--primary-soft);color:var(--primary)}
+html[data-brand-product=seller] #sellerLanding .site-button.outline{background:var(--surface);color:var(--ink);border-color:var(--border)}
+html[data-brand-product=seller] #sellerLanding .site-button.text{color:var(--ink)}
+html[data-brand-product=seller] #sellerLanding .site-button:hover{box-shadow:0 4px 16px #10162012}
+html[data-brand-product=seller] #sellerLanding .seller-faq details{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin:12px 0}
+html[data-brand-product=seller] #sellerLanding .seller-faq summary{color:var(--ink);font-weight:650;cursor:pointer;line-height:1.5}
+html[data-brand-product=seller] #sellerLanding .seller-faq details[open]{background:var(--landing-tint);border-color:var(--primary)}
+html[data-brand-product=seller] #sellerLanding .seller-faq details p{color:var(--muted);line-height:1.75;margin-top:12px}
+html[data-brand-product=seller] #sellerLanding #why .steps-grid article{padding:22px;border-radius:20px;background:var(--surface);border:1px solid var(--border)}
+html[data-brand-product=seller] #sellerLanding #visit>.mini-flow{padding:20px;border:1px solid var(--border);border-radius:20px;background:var(--surface)}
+html[data-brand-product=seller] #sellerLanding .mini-flow span{font-size:13px;color:var(--ink);border:1px solid var(--border);background:var(--surface-2);border-radius:12px}
+html[data-brand-product=seller][data-theme=dark] #sellerLanding :is(.value-card,.tool-card,.seller-workflow){box-shadow:none}
+html[data-brand-product=seller][data-theme=dark] #sellerLanding .final-cta{background:#173951;border:1px solid #3b4b61}
+html[data-brand-product=seller] #sellerLanding .site-footer{padding-top:32px;gap:32px}
+@media(max-width:480px){html[data-brand-product=seller] .appearance-choices{gap:6px}html[data-brand-product=seller] .appearance-choice{padding:8px;border-radius:12px}html[data-brand-product=seller] .appearance-choice-title{font-size:11px}html[data-brand-product=seller] #sellerLanding .value-grid{grid-template-columns:1fr}html[data-brand-product=seller] #sellerLanding #why .steps-grid{grid-template-columns:1fr;gap:12px}}

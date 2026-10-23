@@ -18,12 +18,15 @@ export function applyAppearance(mode = "system", persist = false) {
       localStorage.setItem("mapmarket.appearance", mode);
     } catch {}
   }
+  for (const input of document.querySelectorAll('input[name="appearance"]')) input.checked = input.value === mode;
+  for (const select of document.querySelectorAll('[data-site-theme]')) select.value = mode;
   for (const label of document.querySelectorAll("[data-appearance-value]"))
     label.textContent = tr(appearanceModes[mode]);
 }
 export function appearanceSettings() {
   return `<section class="card section appearance-settings"><h2>${esc(tr("Настройки"))}</h2><h3>${esc(tr("Оформление"))}</h3><button type="button" class="button soft" data-appearance-open>${esc(tr("Тема"))} · <span data-appearance-value>${esc(tr(appearanceModes[document.documentElement.dataset.themeMode] || appearanceModes.system))}</span></button></section>`;
 }
+document.addEventListener("izbor:appearance-changed", event => applyAppearance(event.detail?.mode));
 document.addEventListener("izbor:language-changed", () => applyAppearance(document.documentElement.dataset.themeMode));
 system.addEventListener("change", () =>
   applyAppearance(document.documentElement.dataset.themeMode),
@@ -34,15 +37,16 @@ window.addEventListener("storage", (event) => {
 document.addEventListener("click", (event) => {
   if (!event.target.closest("[data-appearance-open]")) return;
   const mode = document.documentElement.dataset.themeMode || "system";
+  const seller = document.documentElement.dataset.brandProduct === "seller";
   const modal = dialog(
-    `<fieldset class="form"><legend>${esc(tr("Тема"))}</legend>${Object.entries(
+    `<fieldset class="${seller ? "appearance-options" : "form"}"><legend>${esc(tr("Тема"))}</legend>${seller ? '<div class="appearance-choices">' : ""}${Object.entries(
       appearanceModes,
     )
       .map(
         ([key, title]) =>
-          `<label><input type="radio" name="appearance" value="${key}" ${key === mode ? "checked" : ""}> ${esc(tr(title))}</label>`,
+          seller ? `<label class="appearance-choice"><input type="radio" name="appearance" value="${key}" ${key === mode ? "checked" : ""}><span class="appearance-preview is-${key}" aria-hidden="true"><i></i><b></b><em></em></span><span class="appearance-choice-title">${esc(tr(title))}</span></label>` : `<label><input type="radio" name="appearance" value="${key}" ${key === mode ? "checked" : ""}> ${esc(tr(title))}</label>`,
       )
-      .join("")}</fieldset>`,
+      .join("")}${seller ? "</div>" : ""}</fieldset>`,
     tr("Оформление"),
   );
   modal.addEventListener("change", (event) => {

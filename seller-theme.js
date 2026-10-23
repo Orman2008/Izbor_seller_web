@@ -11,14 +11,15 @@
     document.documentElement.dataset.themeMode = mode;
     document.documentElement.style.colorScheme = theme;
     for (const select of document.querySelectorAll('[data-site-theme]')) select.value = mode;
+    for (const input of document.querySelectorAll('input[name="appearance"]')) input.checked = input.value === mode;
+    document.dispatchEvent(new CustomEvent('izbor:appearance-changed', { detail: { mode } }));
   }
   apply(mode);
   system.addEventListener('change', () => apply(document.documentElement.dataset.themeMode || mode));
   window.addEventListener('storage', e => { if (e.key === 'mapmarket.appearance') apply(e.newValue); });
   document.addEventListener('DOMContentLoaded', () => apply(mode));
   document.addEventListener('change', e => {
-    if (e.target.matches('input[name="appearance"]')) { apply(e.target.value); return; }
-    if (!e.target.matches('[data-site-theme]')) return;
+    if (!e.target.matches('input[name="appearance"], [data-site-theme]')) return;
     apply(e.target.value);
     try { localStorage.setItem('mapmarket.appearance', mode); } catch {}
   });
