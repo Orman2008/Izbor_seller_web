@@ -58,11 +58,5 @@
     history.replaceState(null,'',location.pathname+location.search); window.scrollTo(0,0);
     document.title = 'Izbor Seller для продавцов — привлекайте покупателей рядом';
   });
-  if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const observer = new IntersectionObserver(entries => {
-      for (const entry of entries) if (entry.isIntersecting) { entry.target.classList.remove('is-entering'); observer.unobserve(entry.target); }
-    }, {threshold:.05});
-    for (const section of document.querySelectorAll('.reveal')) { section.classList.add('is-entering'); observer.observe(section); }
-  }
   begin('login', true);
 })();

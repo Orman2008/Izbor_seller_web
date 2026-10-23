@@ -595,3 +595,21 @@ html[data-brand-product] .auth-dialog .modal-head>.icon-button svg{width:20px;he
 #sellerLanding[data-layout=storefront] .site-button{border-radius:10px}
 @media(max-width:800px){#sellerLanding[data-layout=storefront] .lp-connect{gap:40px}#sellerLanding[data-layout=storefront] .lp-story{gap:28px}}
 @media(max-width:540px){#sellerLanding[data-layout=storefront] .lp-connect{grid-template-columns:1fr;gap:32px;padding-top:36px;padding-bottom:36px}#sellerLanding[data-layout=storefront] :is(.lp-story h2,.lp-connect h2){font-size:28px}#sellerLanding[data-layout=storefront] .lp-benefit-grid article{display:block}#sellerLanding[data-layout=storefront] .lp-manage{padding-top:40px;padding-bottom:40px}#sellerLanding[data-layout=storefront] .lp-faq{padding-bottom:40px}}
+
+/* Motion uses compositor properties and never hides content until a script runs. */
+html[data-brand-product]{--motion-fast:130ms;--motion-state:160ms;--motion-navigation:240ms;--motion-ease:cubic-bezier(.22,1,.36,1)}
+html[data-controls-motion=true] :is(button,a.button,a.site-button,a[data-nav],a.category-card,summary){transform:none;transition:scale 130ms var(--motion-ease),translate 160ms var(--motion-ease),background-color 160ms,color 160ms,border-color 160ms,box-shadow 160ms}
+html[data-controls-motion=true] :is(button,a.button,a.site-button,a[data-nav],a.category-card,summary):not(:disabled):active{transform:none}
+html[data-brand-product] :is(.lp-hero-photo,.lp-workday-photo){overflow:hidden}
+html[data-brand-product] :is(.lp-hero-photo,.lp-workday-photo)>img{transition:scale 650ms cubic-bezier(.22,1,.36,1)}
+@media(hover:hover) and (pointer:fine){html[data-controls-motion=true] :is(.button,.site-button):not(:disabled):not([aria-busy=true]):not([aria-disabled=true]):hover{translate:0 -2px}html[data-brand-product] :is(.lp-hero-photo,.lp-workday-photo):hover>img{scale:1.025}html[data-brand-product=buyer] .product-open:hover>.product-image{scale:1.025}}
+html[data-brand-product=buyer] .product-image{transition:scale 300ms var(--motion-ease)}
+html[data-brand-product] .lp-inline-link>span{display:inline-block;transition:translate 180ms var(--motion-ease)}
+@media(hover:hover){html[data-brand-product] .lp-inline-link:hover>span{translate:2px 0}}
+html[data-brand-product] .lp-faq details[open]>p{animation:izbor-faq-entry 180ms ease-out}
+@keyframes izbor-faq-entry{from{opacity:0;translate:0 -4px}to{opacity:1;translate:0 0}}
+html[data-brand-product] .lp-faq summary:after{transition:color 160ms,rotate 180ms var(--motion-ease)}
+html[data-brand-product] .lp-faq details[open] summary:after{content:"+";rotate:45deg}
+@media(prefers-reduced-motion:reduce){html[data-controls-motion=true] :is(button,a.button,a.site-button,a[data-nav],a.category-card,summary){translate:none!important;scale:1!important;transform:none!important}html[data-brand-product] :is(.lp-hero-photo,.lp-workday-photo,.product-open)>img{scale:1!important;transition:none!important}html[data-brand-product] .lp-inline-link>span{translate:none!important}html[data-brand-product] .lp-faq details[open] summary:after{rotate:0deg;content:"−"}}
+
+#sellerLanding[data-layout=storefront] :is(section,fieldset)[id]{scroll-margin-top:calc(var(--seller-header-height,110px) + 16px)}
