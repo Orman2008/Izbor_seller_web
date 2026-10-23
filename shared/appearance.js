@@ -37,18 +37,13 @@ window.addEventListener("storage", (event) => {
 document.addEventListener("click", (event) => {
   if (!event.target.closest("[data-appearance-open]")) return;
   const mode = document.documentElement.dataset.themeMode || "system";
-  const seller = document.documentElement.dataset.brandProduct === "seller";
   const modal = dialog(
-    `<fieldset class="${seller ? "appearance-options" : "form"}"><legend>${esc(tr("Тема"))}</legend>${seller ? '<div class="appearance-choices">' : ""}${Object.entries(
-      appearanceModes,
-    )
-      .map(
-        ([key, title]) =>
-          seller ? `<label class="appearance-choice"><input type="radio" name="appearance" value="${key}" ${key === mode ? "checked" : ""}><span class="appearance-preview is-${key}" aria-hidden="true"><i></i><b></b><em></em></span><span class="appearance-choice-title">${esc(tr(title))}</span></label>` : `<label><input type="radio" name="appearance" value="${key}" ${key === mode ? "checked" : ""}> ${esc(tr(title))}</label>`,
-      )
-      .join("")}${seller ? "</div>" : ""}</fieldset>`,
+    `<fieldset class="appearance-options"><legend>${esc(tr("Тема"))}</legend><div class="appearance-choices">${Object.entries(appearanceModes).map(([key, title]) =>
+      `<label class="appearance-choice"><input type="radio" name="appearance" value="${key}" ${key === mode ? "checked" : ""}><span class="appearance-preview is-${key}" aria-hidden="true"><i></i><b></b><em></em></span><span class="appearance-choice-title">${esc(tr(title))}</span></label>`
+    ).join("")}</div></fieldset>`,
     tr("Оформление"),
   );
+  modal.classList.add("appearance-dialog");
   modal.addEventListener("change", (event) => {
     if (event.target.name === "appearance")
       applyAppearance(event.target.value, true);
