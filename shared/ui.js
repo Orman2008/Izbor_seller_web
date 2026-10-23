@@ -39,7 +39,7 @@ export function dialog(content, title = "") {
   const restoreFocus = document.activeElement;
   const previous = $("dialog", host);
   if (previous?.open) previous.close();
-  host.innerHTML = `<dialog class="web-dialog" aria-labelledby="dialogTitle"><div class="modal-head"><h2 id="dialogTitle">${esc(interfaceText(title))}</h2><button type="button" class="icon-button" aria-label="${esc(interfaceText("Закрыть"))}">×</button></div><div class="modal-body">${content}<p class="form-error" role="alert"></p></div></dialog>`;
+  host.innerHTML = `<dialog class="web-dialog" aria-labelledby="dialogTitle"><div class="modal-head"><h2 id="dialogTitle">${esc(interfaceText(title))}</h2><button type="button" class="icon-button" aria-label="${esc(interfaceText("Закрыть"))}"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div><div class="modal-body">${content}<p class="form-error" role="alert"></p></div></dialog>`;
   const modal = $("dialog", host);
   $(".icon-button", modal).onclick = () => modal.close();
   modal.addEventListener("close", () => {

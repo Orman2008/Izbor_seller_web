@@ -506,3 +506,92 @@ html[data-brand-product] .auth-dialog :is(.form-error,.auth-error):empty{display
 html[data-brand-product] .auth-dialog .auth-error{font-size:13px;line-height:1.5;margin:0}
 html[data-brand-product] .auth-dialog::backdrop{background:#080f1b99;backdrop-filter:blur(5px)}
 @media(max-width:480px){html[data-brand-product] :is(.modal,.web-dialog).auth-dialog{padding:28px 20px 22px;max-width:calc(100vw - 24px);border-radius:24px;max-height:calc(100dvh - 24px)}html[data-brand-product] .auth-dialog .auth-intro h2{font-size:24px}html[data-brand-product] .auth-dialog .auth-intro .auth-copy{font-size:13px}html[data-brand-product] .auth-dialog .modal-head{inset:10px 10px auto auto}html[data-brand-product] .auth-dialog .auth-intro{padding-top:10px}}
+
+/* Consistent scrollbars throughout both websites, including nested dialogs. */
+html[data-brand-product]{--scroll-thumb:color-mix(in srgb,var(--muted) 48%,var(--surface));--scroll-thumb-hover:color-mix(in srgb,var(--muted) 72%,var(--surface))}
+:where(html[data-brand-product],html[data-brand-product] *){scrollbar-width:thin;scrollbar-color:var(--scroll-thumb) transparent}
+:where(html[data-brand-product],html[data-brand-product] *)::-webkit-scrollbar{width:8px;height:8px}
+:where(html[data-brand-product],html[data-brand-product] *)::-webkit-scrollbar-track{background:transparent}
+:where(html[data-brand-product],html[data-brand-product] *)::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border:2px solid transparent;background-clip:padding-box;border-radius:999px;min-height:40px}
+:where(html[data-brand-product],html[data-brand-product] *)::-webkit-scrollbar-thumb:hover{background-color:var(--scroll-thumb-hover)}
+:where(html[data-brand-product],html[data-brand-product] *)::-webkit-scrollbar-button{display:none;width:0;height:0}
+:where(html[data-brand-product],html[data-brand-product] *)::-webkit-scrollbar-corner{background:transparent}
+html[data-brand-product] :is(.modal,.web-dialog){scrollbar-gutter:stable}
+/* Explicit min/max dimensions prevent inherited minimums from stretching the circle. */
+html[data-brand-product] .modal-head>.icon-button{box-sizing:border-box;display:grid;place-items:center;flex:0 0 40px;width:40px;min-width:40px;max-width:40px;height:40px;min-height:40px;max-height:40px;aspect-ratio:1;padding:10px;border-radius:50%;line-height:1}
+html[data-brand-product] .modal-head>.icon-button svg{display:block;width:20px;height:20px;min-width:20px;flex:none}
+html[data-brand-product] .auth-dialog .modal-head{width:40px;height:40px}
+html[data-brand-product] .auth-dialog .modal-head>.icon-button{box-sizing:border-box;flex:0 0 40px;width:40px;min-width:40px;max-width:40px;height:40px;min-height:40px;max-height:40px;padding:10px;border-radius:50%;aspect-ratio:1;line-height:1}
+html[data-brand-product] .auth-dialog .modal-head>.icon-button svg{width:20px;height:20px}
+/* Editorial Seller landing: real photographic scenes and a complete product story. */
+#sellerLanding[data-layout=storefront] .lp-hero{grid-template-columns:1fr 1.08fr;gap:56px;padding-top:52px;padding-bottom:72px}
+#sellerLanding[data-layout=storefront] h1{font-size:clamp(40px,4.15vw,56px);max-width:15ch;line-height:1.12;letter-spacing:-.04em;margin-bottom:24px}
+#sellerLanding[data-layout=storefront] .lp-lead{font-size:17px;line-height:1.75;max-width:42ch}
+#sellerLanding[data-layout=storefront] :is(.lp-hero-photo,.lp-workday-photo){position:relative;min-width:0;margin:0;overflow:hidden;border-radius:28px;border:1px solid var(--border);background:var(--surface-2)}
+#sellerLanding[data-layout=storefront] .lp-hero-photo{aspect-ratio:1/1.04;align-self:stretch;max-height:580px}
+#sellerLanding[data-layout=storefront] .lp-hero-photo>img{display:block;width:100%;height:100%;object-fit:cover;object-position:56% center}
+#sellerLanding[data-layout=storefront] .lp-hero-photo>figcaption{position:absolute;bottom:18px;left:18px;right:18px;display:flex;align-items:center;gap:12px;padding:15px 18px;border-radius:16px;background:#fff;color:#17243a;font-size:14px;font-weight:650;box-shadow:0 8px 28px #0002;line-height:1.5}
+#sellerLanding[data-layout=storefront] .lp-photo-dot{width:10px;height:10px;border-radius:50%;background:#0874ab;box-shadow:0 0 0 5px #e8f4fa;flex:none;margin-right:4px}
+#sellerLanding[data-layout=storefront] .lp-benefits{padding-top:52px;padding-bottom:72px}
+#sellerLanding[data-layout=storefront] .lp-benefit-grid{gap:40px}
+#sellerLanding[data-layout=storefront] .lp-story{gap:70px;padding-top:64px;padding-bottom:64px}
+#sellerLanding[data-layout=storefront] .lp-story-heading h2{max-width:16ch}
+#sellerLanding[data-layout=storefront] .lp-story-copy p{font-size:17px}
+#sellerLanding[data-layout=storefront] .lp-manage{gap:64px;padding-top:80px;padding-bottom:72px;align-items:center}
+#sellerLanding[data-layout=storefront] .lp-workday-photo{aspect-ratio:4/4.1}
+#sellerLanding[data-layout=storefront] .lp-workday-photo img{display:block;width:100%;height:100%;object-fit:cover;object-position:48% center}
+#sellerLanding[data-layout=storefront] .lp-feature-list{list-style:none;padding:0;margin:28px 0;display:grid;gap:24px}
+#sellerLanding[data-layout=storefront] .lp-feature-list li{display:flex;gap:14px;min-width:0}
+#sellerLanding[data-layout=storefront] .lp-feature-list li>span{display:grid;place-items:center;width:24px;height:24px;flex:0 0 24px;background:var(--primary-soft);color:var(--lp-accent);font-size:15px;border-radius:50%;margin-top:3px}
+#sellerLanding[data-layout=storefront] .lp-feature-list li>div{min-width:0}
+#sellerLanding[data-layout=storefront] .lp-feature-list h3{font-size:17px;margin:0 0 6px;line-height:1.4}
+#sellerLanding[data-layout=storefront] .lp-manage-copy .lp-feature-list p{font-size:14px;margin:0;line-height:1.7;color:var(--muted)}
+#sellerLanding[data-layout=storefront] .lp-journey{padding-top:34px;padding-bottom:76px}
+#sellerLanding[data-layout=storefront] .lp-journey-title{max-width:680px;margin-bottom:36px}
+#sellerLanding[data-layout=storefront] .lp-journey ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;list-style:none;padding:0;margin:0;border:1px solid var(--border);border-radius:24px;background:var(--surface);overflow:hidden}
+#sellerLanding[data-layout=storefront] .lp-journey li{min-width:0;padding:28px;border-right:1px solid var(--border)}
+#sellerLanding[data-layout=storefront] .lp-journey li:last-child{border-right:0}
+#sellerLanding[data-layout=storefront] .lp-journey li>span{display:block;color:var(--lp-accent);font-size:13px;font-weight:750;letter-spacing:.06em;margin-bottom:28px}
+#sellerLanding[data-layout=storefront] .lp-journey h3{font-size:20px;margin-bottom:10px}
+#sellerLanding[data-layout=storefront] .lp-journey p{font-size:15px;color:var(--muted);line-height:1.7;margin:0}
+#sellerLanding[data-layout=storefront] .lp-start{padding-top:26px;padding-bottom:74px}
+#sellerLanding[data-layout=storefront] .lp-support{display:flex;align-items:center;justify-content:space-between;gap:36px;background:var(--surface-2);border:1px solid var(--border);border-radius:24px;padding:32px 36px;max-width:1160px;margin:0 auto 26px}
+#sellerLanding[data-layout=storefront] .lp-support h2{font-size:26px;max-width:30ch}
+#sellerLanding[data-layout=storefront] .lp-support .lp-kicker{margin-bottom:10px;font-size:12px}
+#sellerLanding[data-layout=storefront] .lp-support p:not(.lp-kicker){font-size:14px;line-height:1.7;color:var(--muted);max-width:60ch;margin-top:14px}
+#sellerLanding[data-layout=storefront] .lp-support .site-button{flex:none}
+#sellerLanding[data-layout=storefront] .lp-finish{margin-bottom:54px}
+@media(max-width:1100px){#sellerLanding[data-layout=storefront] .lp-hero{gap:32px}#sellerLanding[data-layout=storefront] .lp-support{margin-inline:32px}#sellerLanding[data-layout=storefront] .lp-manage{gap:40px}}
+@media(max-width:800px){#sellerLanding[data-layout=storefront] .lp-hero{grid-template-columns:1fr;gap:30px;padding-top:36px;padding-bottom:52px}#sellerLanding[data-layout=storefront] h1{max-width:20ch;font-size:46px}#sellerLanding[data-layout=storefront] .lp-lead{max-width:52ch}#sellerLanding[data-layout=storefront] .lp-hero-photo{width:100%;aspect-ratio:4/3;max-height:none}#sellerLanding[data-layout=storefront] .lp-manage{grid-template-columns:1fr;padding-top:56px;padding-bottom:52px;gap:28px}#sellerLanding[data-layout=storefront] .lp-manage-copy{order:0}#sellerLanding[data-layout=storefront] .lp-workday-photo{aspect-ratio:4/3}#sellerLanding[data-layout=storefront] .lp-support{margin:0 24px 24px;padding:28px;align-items:flex-start;flex-direction:column;gap:22px}#sellerLanding[data-layout=storefront] .lp-journey li{padding:22px}#sellerLanding[data-layout=storefront] .lp-journey h3{font-size:18px}}
+@media(max-width:540px){#sellerLanding[data-layout=storefront] h1{font-size:38px;max-width:17ch}#sellerLanding[data-layout=storefront] .lp-hero{padding-top:30px;padding-bottom:40px}#sellerLanding[data-layout=storefront] .lp-lead{font-size:15px}#sellerLanding[data-layout=storefront] :is(.lp-hero-photo,.lp-workday-photo){border-radius:20px}#sellerLanding[data-layout=storefront] .lp-hero-photo>figcaption{left:12px;right:12px;bottom:12px;padding:12px 14px;font-size:12px;border-radius:12px}#sellerLanding[data-layout=storefront] .lp-benefits{padding-top:36px;padding-bottom:46px}#sellerLanding[data-layout=storefront] .lp-story{padding-top:42px;padding-bottom:42px;gap:24px}#sellerLanding[data-layout=storefront] .lp-feature-list{gap:20px}#sellerLanding[data-layout=storefront] .lp-journey{padding-top:10px;padding-bottom:44px}#sellerLanding[data-layout=storefront] .lp-journey ol{grid-template-columns:1fr;border-radius:20px}#sellerLanding[data-layout=storefront] .lp-journey li{border-right:0;border-bottom:1px solid var(--border);padding:22px}#sellerLanding[data-layout=storefront] .lp-journey li:last-child{border-bottom:0}#sellerLanding[data-layout=storefront] .lp-journey li>span{margin-bottom:12px}#sellerLanding[data-layout=storefront] .lp-start{padding-top:10px;padding-bottom:42px}#sellerLanding[data-layout=storefront] .lp-support{margin:0 16px 18px;padding:24px}#sellerLanding[data-layout=storefront] .lp-support h2{font-size:24px}#sellerLanding[data-layout=storefront] .lp-support .site-button{width:100%}}
+
+/* Plain Seller presentation: clear sections with less decoration and repetition. */
+#sellerLanding[data-layout=storefront] .lp-section-heading{text-align:left;max-width:none;margin:0 0 32px}
+#sellerLanding[data-layout=storefront] .lp-benefit-grid article{display:block;border-top:1px solid var(--border);padding-top:20px}
+#sellerLanding[data-layout=storefront] .lp-benefit-grid h3{font-size:19px}
+#sellerLanding[data-layout=storefront] .lp-story-wrap{background:transparent;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+#sellerLanding[data-layout=storefront] .lp-story{padding-top:48px;padding-bottom:48px;gap:64px}
+#sellerLanding[data-layout=storefront] .lp-story h2{font-size:34px}
+#sellerLanding[data-layout=storefront] .lp-manage{padding-top:64px;padding-bottom:64px}
+#sellerLanding[data-layout=storefront] .lp-feature-list{gap:20px}
+#sellerLanding[data-layout=storefront] .lp-feature-list li{display:block;padding-bottom:18px;border-bottom:1px solid var(--border)}
+#sellerLanding[data-layout=storefront] .lp-feature-list li:last-child{border-bottom:0;padding-bottom:0}
+#sellerLanding[data-layout=storefront] :is(.lp-hero-photo,.lp-workday-photo){border-radius:16px}
+#sellerLanding[data-layout=storefront] .lp-connect{display:grid;grid-template-columns:1fr 1fr;gap:80px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding-top:52px;padding-bottom:52px;margin-bottom:28px}
+#sellerLanding[data-layout=storefront] .lp-connect h2{font-size:34px;margin:0 0 20px}
+#sellerLanding[data-layout=storefront] .lp-connect p{font-size:16px;line-height:1.8;color:var(--muted);max-width:46ch;margin:0 0 24px}
+#sellerLanding[data-layout=storefront] .lp-connect-details{min-width:0}
+#sellerLanding[data-layout=storefront] .lp-connect-details h3{font-size:18px;margin:0 0 16px}
+#sellerLanding[data-layout=storefront] .lp-connect-details ul{margin:0 0 22px;padding-left:20px;font-size:15px;line-height:1.8;color:var(--ink)}
+#sellerLanding[data-layout=storefront] .lp-connect-details li{padding:3px 0}
+#sellerLanding[data-layout=storefront] .lp-connect-details p{font-size:14px;margin-bottom:12px}
+#sellerLanding[data-layout=storefront] .lp-connect-details>a{font-size:14px;color:var(--lp-accent);text-underline-offset:4px}
+#sellerLanding[data-layout=storefront] .lp-faq{max-width:1240px;padding-top:30px;padding-bottom:64px}
+#sellerLanding[data-layout=storefront] .lp-faq h2{text-align:left;font-size:30px;margin-bottom:24px}
+#sellerLanding[data-layout=storefront] .lp-faq details{border:0;border-bottom:1px solid var(--border);border-radius:0;padding:20px 0;margin:0;background:transparent}
+#sellerLanding[data-layout=storefront] .lp-faq details[open]{background:transparent;border-color:var(--border)}
+#sellerLanding[data-layout=storefront] .lp-faq summary{font-size:16px;font-weight:600}
+#sellerLanding[data-layout=storefront] .lp-faq details p{font-size:14px}
+#sellerLanding[data-layout=storefront] .site-button{border-radius:10px}
+@media(max-width:800px){#sellerLanding[data-layout=storefront] .lp-connect{gap:40px}#sellerLanding[data-layout=storefront] .lp-story{gap:28px}}
+@media(max-width:540px){#sellerLanding[data-layout=storefront] .lp-connect{grid-template-columns:1fr;gap:32px;padding-top:36px;padding-bottom:36px}#sellerLanding[data-layout=storefront] :is(.lp-story h2,.lp-connect h2){font-size:28px}#sellerLanding[data-layout=storefront] .lp-benefit-grid article{display:block}#sellerLanding[data-layout=storefront] .lp-manage{padding-top:40px;padding-bottom:40px}#sellerLanding[data-layout=storefront] .lp-faq{padding-bottom:40px}}
