@@ -21,7 +21,18 @@ export function mountNavigationMotion(nav, {compact = false} = {}) {
       if (!active || !nav.offsetWidth) return;
       const width = compact ? Math.min(42, active.offsetWidth) : active.offsetWidth;
       const height = compact ? 30 : active.offsetHeight;
-      indicator.style.transform = `translate(${active.offsetLeft + (active.offsetWidth - width) / 2}px,${active.offsetTop + (compact ? 3 : 0)}px)`;
+      let left = active.offsetLeft + (active.offsetWidth - width) / 2;
+      let top = active.offsetTop;
+      const icon = compact ? active.querySelector('svg') : null;
+      if (icon) {
+        // Buyer and seller tabs lay out labels differently. Anchor the compact
+        // highlight to the actual icon, rather than the link's top padding.
+        const trackBounds = nav.getBoundingClientRect();
+        const iconBounds = icon.getBoundingClientRect();
+        left = iconBounds.left - trackBounds.left - nav.clientLeft + nav.scrollLeft + (iconBounds.width - width) / 2;
+        top = iconBounds.top - trackBounds.top - nav.clientTop + nav.scrollTop + (iconBounds.height - height) / 2;
+      }
+      indicator.style.transform = `translate(${left}px,${top}px)`;
       indicator.style.width = `${width}px`;
       indicator.style.height = `${height}px`;
       if (!ready) {

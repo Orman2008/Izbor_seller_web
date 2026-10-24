@@ -6,7 +6,7 @@ import {posPage,bindPos} from './seller-pos.js';
 import {branchesPage,bindBranches,mapPosLocations} from './seller-branches.js';
 import {ensureLegalAcceptance,sellerComplianceView,bindSellerCompliance,rankingHelp} from './shared/compliance.js';
 import { appearanceSettings } from "./shared/appearance.js";
-import { mountNavigationMotion } from "./shared/motion.js";
+import { mountNavigationMotion } from "./shared/motion.js?v=20261024-nav";
 import {
   createApiClient,
   resolveApiBaseUrl,
