@@ -17,7 +17,7 @@ h3{line-height:1.3}
 button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}
 :focus-visible{outline:3px solid var(--primary-readable);outline-offset:3px}
 .button,.site-button{min-height:44px;border-radius:var(--radius-control)}
-.button:not(.soft):not(.white):not(.danger){background:var(--primary-dark);border-color:var(--primary-dark);color:#fff}
+.button:not(.soft):not(.white):not(.danger):not(.ghost):not(.auth-text-button){background:var(--primary-dark);border-color:var(--primary-dark);color:#fff}
 .desktop-sidebar,.topbar,.mobile-nav,.modal,.modal-head,.chat-list,.chat-room,.profile-hero,.product-card,.list-card,.suggestions{background-color:var(--surface);color:var(--ink)}
 .brand b,.site-brand span,.web-brand{overflow-wrap:anywhere;line-height:1.3}
 .brand b{font-size:13px;letter-spacing:.02em}

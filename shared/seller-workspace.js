@@ -1,3 +1,4 @@
+import {sellerRouteAllowed} from './seller-navigation.js';
 import {esc,heading,field,select,textarea,button,empty,dialog,submit,toast} from './ui.js';
 import {rows,mediaUrl} from './api.js';
 import {interfaceText as tr} from './ui-copy.js';
@@ -15,8 +16,8 @@ const statusLabels={ACTIVE:'Действует',REDEEMED:'Использован
 const status=value=>tr(statusLabels[value]||value||'—');
 const cardLink=(route,title,description)=>`<a class="workspace-tool" href="#${route}"><span><b>${esc(tr(title))}</b><small>${esc(tr(description))}</small></span><span aria-hidden="true">↗</span></a>`;
 export function qrTools(shop){
- const warranty=['TECH','FURNITURE'].includes(shop.specialization_code);
- return `<div class="workspace-tools">${warranty?cardLink('warranties','Гарантии','Создать, найти или проверить гарантию'):''}${cardLink('discounts','Скидки и предложения','Отправить предложение вашим подписчикам')}${cardLink('broadcasts','Рассылка','Новости магазина без покупки и сканирования')}${cardLink('clients','Клиенты','Подписчики и история взаимодействий')}</div>`;
+ const links=[['warranties','Гарантии','Создать, найти или проверить гарантию'],['clients','Клиенты','Подписчики и история взаимодействий']];
+ return `<div class="workspace-tools">${links.filter(([route])=>sellerRouteAllowed(shop,route)).map(([route,title,description])=>cardLink(route,title,description)).join('')}</div>`;
 }
 const actionNames={create_product:'Создать товар',update_store_profile:'Изменить магазин',send_customer_message:'Отправить сообщение покупателю'};
 const actionFields={title:'Название',price:'Цена, сум',category:'Категория',description:'Описание',brand:'Бренд',model:'Модель',color:'Цвет',size:'Размер',in_stock:'Наличие',stock_quantity:'Количество',name:'Название магазина',address:'Адрес',working_hours:'Время работы',specialization:'Специализация',telegram:'Telegram',chat_id:'Диалог',message:'Сообщение'};
@@ -27,6 +28,7 @@ export function createSellerWorkspace({api,shop,base,reload}){
  const customerOptions=async()=>rows(await api.request(path('/qr/customers')),'customers').map(c=>[c.id||c.buyer_id,c.name||c.buyer_name||String(c.id||c.buyer_id)]);
  const photo=url=>url?`<img loading="lazy" src="${esc(mediaUrl(url,base))}" alt="" class="workspace-photo">`:'';
  async function render(route){
+  if(!sellerRouteAllowed(shop,route))throw new Error(tr('Раздел недоступен для категории магазина или вашей роли.'));
   if(route==='invitations'){
    const data=await api.request(path('/employee-invitations'));data.invitations=rows(data,'invitations').map(i=>({...i,status:i.revoked_at?'CANCELLED':new Date(i.expires_at)<=new Date()?'EXPIRED':Number(i.used_count)>=Number(i.max_uses)?'USED':'ACTIVE'}));
    return `${heading('Приглашения сотрудников',tr('Пригласите сотрудника в выбранный магазин'))}<div class="workspace-split"><form id="workspaceInvite" class="form card">${select('Роль','role',[['seller',tr('Продавец')],['manager',tr('Менеджер')]])}${select('Срок действия','ttl_hours',[[24,tr('24 часа')],[72,tr('3 дня')],[168,tr('7 дней')]])}<p class="muted">${esc(tr('Приглашение действует для одного сотрудника. Роль и магазин проверяются сервером.'))}</p><button class="button">${esc(tr('Создать приглашение'))}</button><p class="form-error" role="alert"></p></form><div class="workspace-records">${rows(data,'invitations').map(i=>`<article class="workspace-record"><header><h3>${esc(tr(i.role==='manager'?'Менеджер':'Продавец'))}</h3><span class="status">${esc(status(i.status))}</span></header><p>${esc(tr('Действует до'))}: ${esc(new Date(i.expires_at).toLocaleString(document.documentElement.lang))}</p>${i.status==='ACTIVE'?button('Отозвать приглашение','work-invite-revoke',`data-id="${esc(i.id)}"`):''}</article>`).join('')||empty('Приглашений пока нет')}</div></div>`;

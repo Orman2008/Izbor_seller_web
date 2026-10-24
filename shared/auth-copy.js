@@ -1,4 +1,5 @@
 const copy={
+'Введите код из SMS':['Enter the SMS code','SMS kodini kiriting'],
 'Введите 9 цифр после +998.':['Enter 9 digits after +998.','+998 dan keyin 9 ta raqam kiriting.'],
 'Примите условия.':['Accept the terms.','Shartlarni qabul qiling.'],
 'Введите имя и примите условия.':['Enter your name and accept the terms.','Ismingizni kiriting va shartlarni qabul qiling.'],

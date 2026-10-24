@@ -613,3 +613,28 @@ html[data-brand-product] .lp-faq details[open] summary:after{content:"+";rotate:
 @media(prefers-reduced-motion:reduce){html[data-controls-motion=true] :is(button,a.button,a.site-button,a[data-nav],a.category-card,summary){translate:none!important;scale:1!important;transform:none!important}html[data-brand-product] :is(.lp-hero-photo,.lp-workday-photo,.product-open)>img{scale:1!important;transition:none!important}html[data-brand-product] .lp-inline-link>span{translate:none!important}html[data-brand-product] .lp-faq details[open] summary:after{rotate:0deg;content:"−"}}
 
 #sellerLanding[data-layout=storefront] :is(section,fieldset)[id]{scroll-margin-top:calc(var(--seller-header-height,110px) + 16px)}
+
+/* Staff may have fewer tabs; distribute the available destinations evenly. */
+@media(max-width:900px){html[data-brand-product=seller] .seller-mobile-tabs{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}}
+
+/* SMS verification: one primary action and a compact, stable code row. */
+html[data-brand-product] .auth-dialog.auth-code-stage{width:440px;scroll-padding-top:20px}
+html[data-brand-product] .auth-dialog .auth-code-intro{padding:4px 0 16px;gap:10px}
+html[data-brand-product] .auth-dialog .auth-code-intro .auth-logo{width:40px;height:40px;min-width:40px;max-width:40px;flex-basis:40px;border-radius:10px}
+html[data-brand-product] .auth-dialog .auth-code-intro h2{font-size:24px;margin:0}
+html[data-brand-product] .auth-dialog .auth-code-intro .eyebrow{margin-bottom:6px}
+html[data-brand-product] .auth-code-stage .auth-copy{text-align:center;margin:0 0 18px;font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+html[data-brand-product] .auth-dialog .otp-cells{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;width:100%;max-width:100%;margin:0 0 8px}
+html[data-brand-product] .auth-dialog .otp-cells>input[data-otp]{box-sizing:border-box;width:100%;min-width:0;max-width:100%;height:52px;padding:0;text-align:center;font-family:inherit;font-size:23px;font-weight:600;line-height:normal;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:12px;box-shadow:none;appearance:none}
+html[data-brand-product] .auth-dialog .otp-cells>input[data-otp]:focus{outline:2px solid var(--primary);outline-offset:2px;border-color:var(--primary);box-shadow:none}
+html[data-brand-product] .auth-dialog .auth-code-links{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 12px;margin-top:6px}
+html[data-brand-product] .auth-dialog .auth-text-button{width:auto;min-height:40px;padding:8px 4px;font-size:13px;font-weight:500;background:transparent;border:0;color:var(--primary-readable,var(--primary));box-shadow:none;translate:none}
+html[data-brand-product] .auth-dialog .auth-resend{min-height:42px;margin-top:8px;padding:8px;font-size:13px;font-weight:500;background:transparent;border:0;color:var(--primary-readable,var(--primary));box-shadow:none}
+html[data-brand-product] .auth-dialog .auth-resend:disabled{opacity:1;color:var(--muted);background:transparent;cursor:default}
+html[data-brand-product] .auth-dialog :is(.auth-resend,.auth-text-button):not(:disabled):hover{background:var(--surface-2);translate:none}
+html[data-brand-product=buyer] .modal-backdrop{overflow-y:auto;align-items:safe center}
+@media(max-width:360px){html[data-brand-product] .auth-dialog .otp-cells{gap:6px}html[data-brand-product] .auth-dialog .otp-cells>input[data-otp]{height:44px;font-size:20px;border-radius:10px}html[data-brand-product] .auth-dialog .auth-code-intro h2{font-size:21px}}
+@media(max-height:600px){html[data-brand-product] .auth-dialog.auth-code-stage{padding-top:24px;padding-bottom:18px}html[data-brand-product] .auth-dialog .auth-code-intro .auth-logo{display:none}html[data-brand-product] .auth-dialog .auth-code-intro{padding-bottom:12px}}
+
+/* Native dialogs must stay anchored to the viewport after the page has scrolled. */
+html[data-brand-product] dialog.web-dialog.auth-dialog{position:fixed;inset:0;margin:auto}
