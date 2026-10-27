@@ -26,16 +26,16 @@
     if (modulePromise) return modulePromise;
     for (const path of ['shared/design.css','shared/appearance.css']) stylesheet(path);
     modulePromise = (async () => {
-      return import('./web-app.js?v=20261024-nav');
+      return import('./web-app.bundle.js?v=20261024-seo');
     })().catch(error => { modulePromise = null; throw error; });
     return modulePromise;
   }
-  let starting = false;
+  let starting = false, pendingMode = null;
   async function begin(mode, automatic = false) {
-    if(starting)return;
+    if(starting){if(!automatic)pendingMode=mode;return;}
     starting = true;
     status.hidden = true;
-    const buttons = [...document.querySelectorAll('[data-seller-auth]')]; buttons.forEach(b => b.disabled = true);
+    const buttons = [...document.querySelectorAll('[data-seller-auth]')]; if(!automatic)buttons.forEach(b => b.disabled = true);
     let timer;
     try {
       const module = await Promise.race([loadDashboard(),new Promise((_,reject) => { timer = setTimeout(() => reject(new Error('Кабинет загружается слишком долго. Проверьте соединение и повторите.')),20000); })]);
@@ -44,19 +44,21 @@
     } catch (error) {
       status.querySelector('span').textContent = `Не удалось открыть кабинет. ${error.message}`;
       status.hidden = false;
-    } finally { starting = false; clearTimeout(timer); buttons.forEach(b => b.disabled = false); }
+    } finally { starting = false; clearTimeout(timer); buttons.forEach(b => b.disabled = false);const next=pendingMode;pendingMode=null;if(next)begin(next); }
   }
   document.addEventListener('click', event => {
     const button = event.target.closest('[data-seller-auth]');
     if (button) begin(button.dataset.sellerAuth);
   });
+  const seo=(options)=>import('./shared/seo.js').then(m=>m.setPageSeo(options||m.sellerHomeSeo));
   window.addEventListener('seller-authenticated', () => {
+    seo({title:'Кабинет продавца — Izbor Seller',noindex:true});
     publicPage.hidden = true; dashboard.hidden = false; status.hidden = true; window.scrollTo(0,0);
   });
   window.addEventListener('seller-signed-out', () => {
     publicPage.hidden = false; dashboard.hidden = true;
     history.replaceState(null,'',location.pathname+location.search); window.scrollTo(0,0);
-    document.title = 'Izbor Seller для продавцов — привлекайте покупателей рядом';
+    seo();
   });
   begin('login', true);
 })();

@@ -35,6 +35,7 @@ const observer = 'IntersectionObserver' in window ? new IntersectionObserver(ent
 },{threshold:0,rootMargin:'0px 0px -28px 0px'}) : null;
 function consider(element) {
  if (seen.has(element)||candidates.has(element)) return;
+ if(element.matches('.lp-hero-photo,.lp-hero-copy > *,.catalog-intro')){seen.add(element);return;}
  if(reduced.matches){seen.add(element);return;}
  if(element.matches('dialog,[role="dialog"]')){reveal(element);return;}
  // Large, nested panels own their entrance; avoid animating text a second time inside them.

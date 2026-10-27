@@ -35,7 +35,10 @@ document.addEventListener('keydown', event => {
   press(node);
 });
 document.addEventListener('keyup', event => { if (['Enter',' '].includes(event.key)) release(); });
-document.addEventListener('focusout', release);
+// A pointer press can begin before the old control loses focus.
+document.addEventListener('focusout', event => {
+  if (current && (event.target === current || current.contains(event.target))) release();
+});
 document.addEventListener('visibilitychange', () => { if (document.hidden) release(); });
 window.addEventListener('blur', release);
 window.addEventListener('pagehide', release);
