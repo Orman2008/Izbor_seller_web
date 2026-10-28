@@ -15,6 +15,7 @@ export async function mountChats(
   container,
   { api, baseUrl, role, initialChat, threadQuery },
 ) {
+  container.innerHTML = loading('chats');
   const threads = rows(await api.request("/chats"+(threadQuery?"?"+new URLSearchParams(threadQuery):"")));
   if(!container.isConnected)return()=>{};
   let active = initialChat,
@@ -72,7 +73,7 @@ export async function mountChats(
     active = id;
     const version = ++generation;
     currentMessages = [];
-    $("#chatRoom", container).innerHTML = loading();
+    $("#chatRoom", container).innerHTML = loading('messages');
     let data, block;
     try {
       [data, block] = await Promise.all([

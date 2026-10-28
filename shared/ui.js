@@ -1,3 +1,4 @@
+import { SkeletonSection } from './skeleton.js';
 import { interfaceText } from "./ui-copy.js";
 export const esc = (value = "") =>
   String(value ?? "").replace(
@@ -17,8 +18,7 @@ export const button = (label, action, extra = "") =>
   `<button type="button" class="button" data-action="${esc(action)}" ${extra}>${esc(interfaceText(label))}</button>`;
 export const empty = (message) =>
   `<div class="empty"><h2>${esc(interfaceText(message || "Здесь пока ничего нет"))}</h2><p class="muted">${esc(interfaceText("Когда появятся данные, они будут показаны здесь."))}</p></div>`;
-export const loading = () =>
-  `<div class="empty" role="status"><span class="spinner"></span><p>${esc(interfaceText("Загрузка…"))}</p></div>`;
+export const loading = (kind = 'list') => SkeletonSection(kind);
 export const errorView = (error) =>
   `<div class="empty" role="alert"><h2>${error.status === 401 ? "Нужно войти" : error.status === 403 ? "Недостаточно прав" : "Не удалось загрузить данные"}</h2><p>${esc(interfaceText(error.message))}</p>${button(error.status === 401 ? "Войти" : "Повторить", error.status === 401 ? "login" : "retry")}</div>`;
 export function field(label, name, value = "", type = "text", attrs = "") {

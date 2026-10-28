@@ -26,7 +26,7 @@
     if (modulePromise) return modulePromise;
     for (const path of ['shared/design.css','shared/appearance.css']) stylesheet(path);
     modulePromise = (async () => {
-      return import('./web-app.bundle.js?v=20261024-seo');
+      return import('./web-app.bundle.js?v=20261028-skeleton');
     })().catch(error => { modulePromise = null; throw error; });
     return modulePromise;
   }

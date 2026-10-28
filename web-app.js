@@ -1,3 +1,5 @@
+import { installImageSkeletons } from './shared/skeleton.js';
+installImageSkeletons();
 import {sellerCan,sellerHasWarranties,sellerRouteAllowed,sellerMenuRoutes,sellerNavigationParent} from './shared/seller-navigation.js';
 import {createSellerWorkspace,workspaceRoutes,qrTools,splitConnections} from './shared/seller-workspace.js';
 import { attributeEditorMarkup, mountAttributeEditor } from "./shared/product-attributes-editor.js";
@@ -89,7 +91,7 @@ const nav = [
   ["ranking", "Как формируется выдача"],
 ];
 $("#app").outerHTML =
-  `<a class="skip-link" href="#view">К содержимому</a><div class="web-shell"><aside class="web-sidebar" id="workspaceSidebar"><a class="web-brand" href="#dashboard"><img src="assets/izbor-icon-192.png?v=20261020" alt="Izbor Seller"><span>Izbor Seller<br><small class="muted">Бизнес-центр</small></span></a><nav aria-label="Кабинет продавца">${nav.filter(([key])=>sellerMenuRoutes(null).includes(key)).map(([key, title]) => `<a href="#${key}" data-nav="${key}"><span class="seller-nav-icon">${sellerIcon(key)}</span><span>${title}</span></a>`).join("")}</nav><div class="sidebar-footer">${supportLinks(base, "seller")}</div></aside><button type="button" class="workspace-backdrop" data-workspace-dismiss aria-label="Закрыть меню" hidden></button><main class="web-main"><header class="web-header"><button type="button" class="button soft workspace-menu-button" data-workspace-menu aria-expanded="false" aria-controls="workspaceSidebar">☰ <span>Все разделы</span></button><span id="storeName">Кабинет продавца</span><div id="branchContext"></div><label class="site-language"><span class="sr-only">Язык</span><select data-site-language aria-label="Язык"><option value="ru">RU</option><option value="uz">UZ</option><option value="en">EN</option></select></label><div class="actions">${button("Войти", "login")}${button("Выйти", "logout")}</div></header><section id="view" class="web-content" aria-live="polite"></section></main><nav class="seller-mobile-tabs" aria-label="Основные разделы">${[["dashboard","Главная"],["products","Товары"],["qr","QR"],["clients","Клиенты"],["profile","Профиль"]].map(([key,title])=>`<a href="#${key}" data-nav="${key}">${sellerIcon(key)}<span>${title}</span></a>`).join("")}</nav></div>`;
+  `<a class="skip-link" href="#view">К содержимому</a><div class="web-shell"><aside class="web-sidebar" id="workspaceSidebar"><a class="web-brand" href="#dashboard"><img src="assets/izbor-icon-192.png?v=20261027" alt="Izbor Seller"><span>Izbor Seller<br><small class="muted">Бизнес-центр</small></span></a><nav aria-label="Кабинет продавца">${nav.filter(([key])=>sellerMenuRoutes(null).includes(key)).map(([key, title]) => `<a href="#${key}" data-nav="${key}"><span class="seller-nav-icon">${sellerIcon(key)}</span><span>${title}</span></a>`).join("")}</nav><div class="sidebar-footer">${supportLinks(base, "seller")}</div></aside><button type="button" class="workspace-backdrop" data-workspace-dismiss aria-label="Закрыть меню" hidden></button><main class="web-main"><header class="web-header"><button type="button" class="button soft workspace-menu-button" data-workspace-menu aria-expanded="false" aria-controls="workspaceSidebar">☰ <span>Все разделы</span></button><span id="storeName">Кабинет продавца</span><div id="branchContext"></div><label class="site-language"><span class="sr-only">Язык</span><select data-site-language aria-label="Язык"><option value="ru">RU</option><option value="uz">UZ</option><option value="en">EN</option></select></label><div class="actions">${button("Войти", "login")}${button("Выйти", "logout")}</div></header><section id="view" class="web-content" aria-live="polite"></section></main><nav class="seller-mobile-tabs" aria-label="Основные разделы">${[["dashboard","Главная"],["products","Товары"],["qr","QR"],["clients","Клиенты"],["profile","Профиль"]].map(([key,title])=>`<a href="#${key}" data-nav="${key}">${sellerIcon(key)}<span>${title}</span></a>`).join("")}</nav></div>`;
 function syncSellerNavigation(){
  const visible=sellerMenuRoutes(shop);
  const sidebar=document.querySelector('.web-sidebar nav');
@@ -406,7 +408,7 @@ async function catalog() {
 }
 async function lookup(value) {
   filter = value;
-  $("#catalogResults").innerHTML = loading();
+  $("#catalogResults").innerHTML = loading("products");
   try {
     let data;
     if (/^\d{8,14}$/.test(value)) {
@@ -576,7 +578,7 @@ async function go(next = route) {
   cleanup = () => {};
   disposePrevious();
   document.title = `${nav.find((n) => n[0] === route)?.[1] || "Кабинет"} · Izbor Seller`;
-  $("#view").innerHTML = loading();
+  $("#view").innerHTML = loading(route === "products" ? "table" : route === "store" ? "profile" : route);
   $("[data-action=login]").hidden = api.authenticated;
   $("[data-action=logout]").hidden = !api.authenticated;
   if (!api.authenticated) {

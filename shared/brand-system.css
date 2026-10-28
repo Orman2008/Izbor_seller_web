@@ -40,8 +40,35 @@ html[data-brand-product] .billing-controls button.active,html[data-brand-product
 html[data-brand-product] .final-cta>p{color:var(--muted)}
 
 html[data-brand-product] .billing-controls [aria-pressed=true]{background:var(--primary);color:var(--surface);border-color:var(--primary)}
-.product-skeleton{min-height:280px;border:1px solid var(--border);border-radius:10px;padding:12px}.product-skeleton div{height:180px;background:var(--surface-2);border-radius:8px}.product-skeleton span{display:block;height:16px;margin-top:16px;width:75%;background:var(--surface-2);border-radius:4px}.product-skeleton span:last-child{width:45%}.skeleton-grid{contain:layout paint}
+
 
 .site-language select{min-height:44px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--ink);padding:8px}.seller-faq{max-width:960px}.seller-faq details{border-bottom:1px solid var(--border);padding:20px 0}.seller-faq summary{cursor:pointer;font-weight:650;min-height:44px}.seller-faq p{color:var(--muted);max-width:70ch}
 
 .header-actions{flex-wrap:wrap}.site-language{flex:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* Supplied Market/Seller artwork: scale without cropping, rounded UI containers. */
+.brand img,.site-brand img,.web-brand img,.seller-brand-panel img,.hero-art img{object-fit:contain;border-radius:22%!important}
+
+/* Shared layout-aware loading primitives; paint stays inside each placeholder. */
+.iz-sk-group{max-width:100%;min-width:0;overflow:hidden;animation:iz-content-in .16s ease-out}
+.iz-sk-group>div{min-width:0}
+.iz-skeleton{display:block;max-width:100%;position:relative;overflow:hidden;background:var(--surface-2,#e7ebef);border-radius:6px;color:transparent}
+.iz-skeleton::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent,rgba(128,150,170,.12),transparent);transform:translateX(-100%);animation:iz-shimmer 1.8s ease-in-out infinite}
+.iz-sk-text{height:14px;width:75%;margin:10px 0}.iz-sk-title{height:24px;width:65%;margin:12px 0}
+.iz-sk-avatar{height:48px;width:48px;flex-shrink:0;border-radius:50%}.iz-sk-image{width:100%;aspect-ratio:1;border-radius:12px}
+.iz-sk-button{height:44px;width:100%;margin-top:12px;border-radius:12px}.iz-sk-card{border:1px solid var(--border,#e0e5eb);border-radius:16px;padding:12px;min-width:0;margin-bottom:12px}
+.iz-sk-row{display:flex;align-items:center;gap:12px;padding:16px 0;min-width:0}.iz-sk-row>div{flex:1;min-width:0}
+.iz-sk-message{padding:12px;width:70%;margin:12px 0;border-radius:16px;background:var(--surface-2,#e7ebef)}.iz-sk-message.mine{margin-left:auto}
+.iz-sk-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}.iz-sk-detail{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.iz-sk-profile{max-width:640px;margin:auto}.iz-sk-group .iz-sk-stats+.iz-sk-image{aspect-ratio:auto;height:220px}
+.iz-content-ready{animation:iz-content-in .16s ease-out}.iz-image-pending{background:var(--surface-2,#e7ebef);animation:iz-image-pulse 1.6s ease-in-out infinite}
+@keyframes iz-shimmer{to{transform:translateX(100%)}}@keyframes iz-content-in{from{opacity:.5}to{opacity:1}}@keyframes iz-image-pulse{50%{opacity:.7}}
+@media(max-width:640px){.iz-sk-detail{grid-template-columns:minmax(0,1fr)}.iz-sk-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.iz-skeleton::after,.iz-sk-group,.iz-content-ready,.iz-image-pending{animation:none!important}}
+
+.iz-sk-grid>.iz-sk-card{padding:0;border:0;background:transparent;margin:0}
+.iz-sk-grid .iz-sk-title{height:40px;width:85%;margin:12px 0 8px}
+.iz-sk-grid .iz-sk-button{height:42px}
+
+.iz-sk-table-row{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr));align-items:center;gap:16px;border-bottom:1px solid var(--border,#ddd);min-width:0}
+@media(max-width:640px){.iz-sk-table-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:12px 0}}
