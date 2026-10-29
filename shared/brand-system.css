@@ -47,7 +47,7 @@ html[data-brand-product] .billing-controls [aria-pressed=true]{background:var(--
 .header-actions{flex-wrap:wrap}.site-language{flex:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 /* Supplied Market/Seller artwork: scale without cropping, rounded UI containers. */
-.brand img,.site-brand img,.web-brand img,.seller-brand-panel img,.hero-art img{object-fit:contain;border-radius:22%!important}
+.brand img,.mobile-brand img,.site-brand img,.web-brand img,.seller-brand-panel img,.hero-art img,.auth-logo,.buyer-home-logo{object-fit:contain;border-radius:28%!important}
 
 /* Shared layout-aware loading primitives; paint stays inside each placeholder. */
 .iz-sk-group{max-width:100%;min-width:0;overflow:hidden;animation:iz-content-in .16s ease-out}
